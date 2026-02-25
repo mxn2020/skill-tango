@@ -1,13 +1,21 @@
 import { defineSchema, defineTable } from "convex/server";
 import { v } from "convex/values";
+import { authTables } from "@convex-dev/auth/server";
 
 export default defineSchema({
-    // Users for gamification stats and auth mapping (if Clerk is added later)
-    users: defineTable({
+    ...authTables,
+
+    // App-specific user profile data
+    userProfiles: defineTable({
+        userId: v.string(), // references authTables users._id
+        name: v.optional(v.string()),
+        role: v.union(v.literal("user"), v.literal("admin")),
         xp: v.number(),
         streak: v.number(),
         lastActiveAt: v.number(),
-    }),
+        stripeCustomerId: v.optional(v.string()),
+        plan: v.optional(v.union(v.literal("free"), v.literal("pro"), v.literal("enterprise"))),
+    }).index("by_userId", ["userId"]),
 
     // Generated Courses
     courses: defineTable({

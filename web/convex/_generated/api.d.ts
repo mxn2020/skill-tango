@@ -10,9 +10,12 @@
 
 import type * as aiLogs from "../aiLogs.js";
 import type * as aiPipeline from "../aiPipeline.js";
+import type * as auth from "../auth.js";
 import type * as content from "../content.js";
+import type * as http from "../http.js";
 import type * as nvidia from "../nvidia.js";
 import type * as prompts from "../prompts.js";
+import type * as users from "../users.js";
 
 import type {
   ApiFromModules,
@@ -23,9 +26,12 @@ import type {
 declare const fullApi: ApiFromModules<{
   aiLogs: typeof aiLogs;
   aiPipeline: typeof aiPipeline;
+  auth: typeof auth;
   content: typeof content;
+  http: typeof http;
   nvidia: typeof nvidia;
   prompts: typeof prompts;
+  users: typeof users;
 }>;
 
 /**
