@@ -1,0 +1,238 @@
+/* ====================================
+   Skill-Tango — Design System
+   ==================================== */
+
+/* --- CSS Custom Properties --- */
+:root {
+  /* Colors */
+  --color-void-black: #0A0A0A;
+  --color-deep-blue: #0A1128;
+  --color-cyber-cyan: #06B6D4;
+  --color-accent-light: #22D3EE;
+  --color-accent-rgb: 6, 182, 212;
+  --color-neon-emerald: #10B981;
+  --color-warm-amber: #F59E0B;
+  --color-hot-red: #EF4444;
+  --color-ice-white: #F8FAFC;
+  --color-smoke-gray: #94A3B8;
+
+  /* Gradients */
+  --gradient-card: linear-gradient(135deg, #0A1128 0%, #0A0A0A 100%);
+  --gradient-primary: linear-gradient(90deg, #06B6D4, #10B981);
+  --gradient-glow: radial-gradient(circle, rgba(6, 182, 212, 0.3), transparent);
+
+  /* Typography */
+  --font-heading: 'Space Grotesk', sans-serif;
+  --font-body: 'Inter', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+
+  /* Spacing */
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 16px;
+  --space-lg: 24px;
+  --space-xl: 32px;
+  --space-2xl: 48px;
+
+  /* Border Radius */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+  --radius-full: 9999px;
+
+  /* Transitions */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --transition-fast: 150ms var(--ease-out);
+  --transition-normal: 250ms var(--ease-out);
+}
+
+/* --- Reset & Base --- */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-family: var(--font-body);
+  font-weight: 400;
+  color: var(--color-ice-white);
+  background-color: var(--color-void-black);
+  min-height: 100vh;
+  line-height: 1.6;
+}
+
+a {
+  color: var(--color-cyber-cyan);
+  text-decoration: none;
+  transition: color var(--transition-fast);
+}
+
+/* --- Typography --- */
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--font-heading);
+  line-height: 1.2;
+}
+
+h1 {
+  font-size: clamp(2rem, 6vw, 4rem);
+  font-weight: 700;
+}
+
+/* --- Layout Utilities --- */
+.container {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 var(--space-md);
+}
+
+/* --- App Layout --- */
+.app {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.app__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-md) var(--space-lg);
+  border-bottom: 1px solid rgba(var(--color-accent-rgb), 0.1);
+}
+
+.app__logo {
+  font-family: var(--font-heading);
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--color-ice-white);
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.app__main {
+  flex: 1;
+}
+
+/* --- Buttons --- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm);
+  padding: var(--space-md) var(--space-xl);
+  border-radius: var(--radius-md);
+  font-family: var(--font-heading);
+  font-weight: 600;
+  font-size: 1rem;
+  transition: all var(--transition-normal);
+  cursor: pointer;
+  border: none;
+}
+
+.btn--primary {
+  background: var(--gradient-primary);
+  color: var(--color-void-black);
+  box-shadow: 0 0 24px rgba(6, 182, 212, 0.3);
+}
+
+.btn--primary:hover {
+  box-shadow: 0 0 40px rgba(6, 182, 212, 0.5);
+  transform: translateY(-2px);
+}
+
+.btn--secondary {
+  background: rgba(var(--color-accent-rgb), 0.1);
+  color: var(--color-cyber-cyan);
+  border: 1px solid rgba(var(--color-accent-rgb), 0.3);
+}
+
+.btn--secondary:hover {
+  background: rgba(var(--color-accent-rgb), 0.2);
+}
+
+/* --- Cards --- */
+.card {
+  background: var(--gradient-card);
+  border: 1px solid rgba(var(--color-accent-rgb), 0.2);
+  border-radius: var(--radius-xl);
+  padding: var(--space-xl);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+/* --- Extra spacing --- */
+:root {
+  --space-3xl: 80px;
+}
+
+/* --- Nav links --- */
+.app__nav {
+  display: flex;
+  align-items: center;
+  gap: var(--space-lg);
+}
+
+.app__nav-link {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--color-smoke-gray);
+  cursor: pointer;
+  transition: color var(--transition-fast);
+}
+
+.app__nav-link:hover {
+  color: var(--color-ice-white);
+}
+
+/* --- Disabled button state --- */
+.btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+/* --- Animations --- */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.4s var(--ease-out) both;
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
