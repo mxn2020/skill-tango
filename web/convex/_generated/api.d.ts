@@ -10,6 +10,7 @@
 
 import type * as aiLogs from "../aiLogs.js";
 import type * as aiPipeline from "../aiPipeline.js";
+import type * as auditLog from "../auditLog.js";
 import type * as auth from "../auth.js";
 import type * as content from "../content.js";
 import type * as http from "../http.js";
@@ -27,6 +28,7 @@ import type {
 declare const fullApi: ApiFromModules<{
   aiLogs: typeof aiLogs;
   aiPipeline: typeof aiPipeline;
+  auditLog: typeof auditLog;
   auth: typeof auth;
   content: typeof content;
   http: typeof http;

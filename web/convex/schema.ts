@@ -105,4 +105,18 @@ export default defineSchema({
         .index("by_model_timestamp", ["model", "timestamp"])
         .index("by_caller", ["caller"])
         .index("by_status", ["status"]),
+
+    auditLogs: defineTable({
+        action: v.string(),
+        category: v.union(v.literal("auth"), v.literal("admin"), v.literal("system"), v.literal("billing")),
+        userId: v.optional(v.string()),
+        targetId: v.optional(v.string()),
+        details: v.string(),
+        ipAddress: v.optional(v.string()),
+        timestamp: v.number(),
+    })
+        .index("by_timestamp", ["timestamp"])
+        .index("by_category", ["category", "timestamp"])
+        .index("by_userId", ["userId", "timestamp"])
+        .index("by_action", ["action", "timestamp"]),
 });

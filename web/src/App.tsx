@@ -10,6 +10,7 @@ import LoginPage from './pages/LoginPage'
 import PricingPage from './pages/PricingPage'
 import HelpPage from './pages/HelpPage'
 import AdminPage from './pages/AdminPage'
+import AuditLogsPage from './pages/AuditLogsPage'
 import { type ReactNode } from 'react'
 
 function Layout({ children }: { children: ReactNode }) {
@@ -31,7 +32,10 @@ function Layout({ children }: { children: ReactNode }) {
           <Link to="/pricing" className="app__nav-link">Pricing</Link>
           <Link to="/help" className="app__nav-link">Help</Link>
           {isAuthenticated && me?.role === 'admin' && (
-            <Link to="/admin" className="app__nav-link">⚙️ Admin</Link>
+            <>
+              <Link to="/admin" className="app__nav-link">⚙️ Admin</Link>
+              <Link to="/audit-logs" className="app__nav-link">📋 Logs</Link>
+            </>
           )}
           {isAuthenticated ? (
             <button className="app__nav-link" onClick={() => { signOut(); navigate('/'); }}>
@@ -65,6 +69,7 @@ function App() {
           <Route path="/pricing" element={<PricingPage />} />
           <Route path="/help" element={<HelpPage />} />
           <Route path="/admin" element={<AdminPage />} />
+          <Route path="/audit-logs" element={<AuditLogsPage />} />
         </Routes>
       </Layout>
     </BrowserRouter>
