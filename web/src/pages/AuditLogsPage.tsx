@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useQuery } from 'convex/react'
 import { api } from '../../convex/_generated/api'
+import { CustomSelect } from '../components/CustomSelect'
 
 type Category = 'auth' | 'admin' | 'system' | 'billing' | undefined
 
@@ -95,20 +96,17 @@ export default function AuditLogsPage() {
                     </button>
                 ))}
                 <div style={{ marginLeft: 'auto' }}>
-                    <select
-                        value={limit}
-                        onChange={e => setLimit(Number(e.target.value))}
-                        style={{
-                            background: 'rgba(10,10,10,0.6)', border: '1px solid rgba(var(--color-accent-rgb), 0.3)',
-                            borderRadius: 'var(--radius-sm)', padding: '6px 12px', color: 'var(--color-ice-white)',
-                            fontFamily: 'inherit', fontSize: '0.85rem', cursor: 'pointer',
-                        }}
-                    >
-                        <option value={25}>25 logs</option>
-                        <option value={50}>50 logs</option>
-                        <option value={100}>100 logs</option>
-                        <option value={200}>200 logs</option>
-                    </select>
+                    <CustomSelect
+                        options={[
+                            { value: '25', label: '25 logs' },
+                            { value: '50', label: '50 logs' },
+                            { value: '100', label: '100 logs' },
+                            { value: '200', label: '200 logs' },
+                        ]}
+                        value={String(limit)}
+                        onChange={(val) => setLimit(Number(val))}
+                        size="sm"
+                    />
                 </div>
             </div>
 

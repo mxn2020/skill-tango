@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useMutation, useQuery } from 'convex/react'
 import { api } from '../../convex/_generated/api'
+import { CustomSelect } from '../components/CustomSelect'
 
 export default function AdminPage() {
     const prompts = useQuery(api.prompts.getPrompts)
@@ -115,17 +116,15 @@ export default function AdminPage() {
                                     <span style={{ color: '#999', marginLeft: '8px' }}>{user.role}</span>
                                 </div>
                                 <div>
-                                    <select
+                                    <CustomSelect
+                                        options={[
+                                            { value: 'user', label: 'User' },
+                                            { value: 'admin', label: 'Admin' },
+                                        ]}
                                         value={user.role}
-                                        onChange={(e) => setRole({ profileId: user._id, role: e.target.value as any })}
-                                        style={{
-                                            background: 'rgba(10,10,10,0.8)', color: 'white', border: '1px solid rgba(6,182,212,0.3)',
-                                            borderRadius: '6px', padding: '4px 8px', fontSize: '0.85rem'
-                                        }}
-                                    >
-                                        <option value="user">User</option>
-                                        <option value="admin">Admin</option>
-                                    </select>
+                                        onChange={(val) => setRole({ profileId: user._id, role: val as any })}
+                                        size="sm"
+                                    />
                                 </div>
                             </div>
                         ))}

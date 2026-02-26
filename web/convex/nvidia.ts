@@ -82,38 +82,76 @@ export async function performNvidiaCall(ctx: any, args: {
 
     console.log(`[NVIDIA API Action] [${requestId}] Calling model: ${model} (caller: ${caller})`);
 
+    const RETRYABLE_STATUS_CODES = new Set([429, 500, 502, 503, 504]);
+    const MAX_RETRIES = 3;
+
     try {
-        const response = await fetch('https://integrate.api.nvidia.com/v1/chat/completions', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${apiKey}`,
-            },
-            body: bodyStr,
-        });
+        let lastError: Error | null = null;
 
-        httpStatus = response.status;
-        if (!response.ok) {
-            const errorText = await response.text();
-            status = 'error';
-            errorMessage = errorText.substring(0, 2000);
-            throw new Error(`NVIDIA API error (${response.status}): ${errorText}`);
+        for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+            try {
+                const response = await fetch('https://integrate.api.nvidia.com/v1/chat/completions', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${apiKey}`,
+                    },
+                    body: bodyStr,
+                });
+
+                httpStatus = response.status;
+                if (!response.ok) {
+                    const errorText = await response.text();
+
+                    // Retry on transient errors
+                    if (RETRYABLE_STATUS_CODES.has(response.status) && attempt < MAX_RETRIES) {
+                        const delay = Math.pow(2, attempt - 1) * 1000; // 1s, 2s, 4s
+                        console.log(`[NVIDIA API Action] [${requestId}] Attempt ${attempt}/${MAX_RETRIES} failed (HTTP ${response.status}). Retrying in ${delay}ms...`);
+                        lastError = new Error(`NVIDIA API error (${response.status}): ${errorText}`);
+                        await new Promise(resolve => setTimeout(resolve, delay));
+                        continue;
+                    }
+
+                    status = 'error';
+                    errorMessage = errorText.substring(0, 2000);
+                    throw new Error(`NVIDIA API error (${response.status}): ${errorText}`);
+                }
+
+                const data = await response.json() as any;
+                responseContent = data.choices?.[0]?.message?.content ?? '';
+                finishReason = data.choices?.[0]?.finish_reason;
+                promptTokens = data.usage?.prompt_tokens;
+                completionTokens = data.usage?.completion_tokens;
+                totalTokens = data.usage?.total_tokens;
+
+                if (!responseContent) {
+                    status = 'error';
+                    errorMessage = `Empty content. Finish: ${finishReason}, Tokens: ${completionTokens}`;
+                    throw new Error(errorMessage);
+                }
+
+                if (attempt > 1) {
+                    console.log(`[NVIDIA API Action] [${requestId}] Succeeded on attempt ${attempt}/${MAX_RETRIES}`);
+                }
+
+                return responseContent;
+            } catch (fetchErr) {
+                lastError = fetchErr instanceof Error ? fetchErr : new Error('Unknown error');
+
+                // If it's a network error (no httpStatus set) and we have retries left, retry
+                if (httpStatus === 0 && attempt < MAX_RETRIES) {
+                    const delay = Math.pow(2, attempt - 1) * 1000;
+                    console.log(`[NVIDIA API Action] [${requestId}] Attempt ${attempt}/${MAX_RETRIES} failed (network error). Retrying in ${delay}ms...`);
+                    await new Promise(resolve => setTimeout(resolve, delay));
+                    continue;
+                }
+
+                throw fetchErr;
+            }
         }
 
-        const data = await response.json() as any;
-        responseContent = data.choices?.[0]?.message?.content ?? '';
-        finishReason = data.choices?.[0]?.finish_reason;
-        promptTokens = data.usage?.prompt_tokens;
-        completionTokens = data.usage?.completion_tokens;
-        totalTokens = data.usage?.total_tokens;
-
-        if (!responseContent) {
-            status = 'error';
-            errorMessage = `Empty content. Finish: ${finishReason}, Tokens: ${completionTokens}`;
-            throw new Error(errorMessage);
-        }
-
-        return responseContent;
+        // Should not reach here, but just in case
+        throw lastError || new Error('All retry attempts exhausted');
     } catch (err) {
         if (status !== 'error') {
             status = 'error';

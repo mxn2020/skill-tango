@@ -752,3 +752,198 @@ h1 {
   border: 1px solid rgba(var(--color-accent-rgb), 0.1);
   border-radius: var(--radius-sm);
 }
+
+/* --- Custom Select --- */
+.custom-select {
+  position: relative;
+  display: inline-block;
+}
+
+.custom-select--md {
+  min-width: 200px;
+}
+
+.custom-select--sm {
+  min-width: 120px;
+}
+
+.custom-select__trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  width: 100%;
+  background: rgba(10, 10, 10, 0.8);
+  border: 1px solid rgba(var(--color-accent-rgb), 0.3);
+  border-radius: var(--radius-sm);
+  color: var(--color-ice-white);
+  font-family: inherit;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  outline: none;
+}
+
+.custom-select--md .custom-select__trigger {
+  padding: var(--space-md);
+  font-size: 1rem;
+}
+
+.custom-select--sm .custom-select__trigger {
+  padding: 4px 10px;
+  font-size: 0.85rem;
+}
+
+.custom-select__trigger:hover,
+.custom-select__trigger:focus-visible {
+  border-color: var(--color-cyber-cyan);
+  box-shadow: 0 0 0 3px rgba(var(--color-accent-rgb), 0.12);
+}
+
+.custom-select__chevron {
+  flex-shrink: 0;
+  color: var(--color-smoke-gray);
+  transition: transform var(--transition-fast);
+}
+
+.custom-select__chevron--open {
+  transform: rotate(180deg);
+}
+
+.custom-select__dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  z-index: 50;
+  list-style: none;
+  background: rgba(10, 14, 28, 0.96);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(var(--color-accent-rgb), 0.25);
+  border-radius: var(--radius-sm);
+  padding: 4px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6), 0 0 24px rgba(var(--color-accent-rgb), 0.08);
+  animation: selectDropIn 0.15s var(--ease-out) both;
+}
+
+@keyframes selectDropIn {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.custom-select__option {
+  padding: 8px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  color: var(--color-smoke-gray);
+  transition: all var(--transition-fast);
+}
+
+.custom-select--sm .custom-select__option {
+  padding: 5px 10px;
+  font-size: 0.82rem;
+}
+
+.custom-select__option:hover {
+  background: rgba(var(--color-accent-rgb), 0.12);
+  color: var(--color-ice-white);
+}
+
+.custom-select__option--active {
+  color: var(--color-cyber-cyan);
+  background: rgba(var(--color-accent-rgb), 0.08);
+  font-weight: 600;
+}
+
+/* --- Toast Notifications --- */
+.toast-container {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-width: 420px;
+  pointer-events: none;
+}
+
+.toast {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 18px;
+  border-radius: var(--radius-md);
+  background: rgba(10, 14, 28, 0.95);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(var(--color-accent-rgb), 0.2);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5), 0 0 20px rgba(var(--color-accent-rgb), 0.06);
+  font-size: 0.9rem;
+  color: var(--color-ice-white);
+  pointer-events: auto;
+  animation: toastSlideIn 0.3s var(--ease-out) both;
+}
+
+@keyframes toastSlideIn {
+  from {
+    opacity: 0;
+    transform: translateX(40px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.toast--error {
+  border-color: rgba(239, 68, 68, 0.4);
+}
+
+.toast--error .toast__icon {
+  color: var(--color-hot-red);
+}
+
+.toast--success {
+  border-color: rgba(16, 185, 129, 0.4);
+}
+
+.toast--success .toast__icon {
+  color: var(--color-neon-emerald);
+}
+
+.toast--info .toast__icon {
+  color: var(--color-cyber-cyan);
+}
+
+.toast__icon {
+  flex-shrink: 0;
+}
+
+.toast__message {
+  flex: 1;
+  line-height: 1.4;
+}
+
+.toast__close {
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  color: var(--color-smoke-gray);
+  cursor: pointer;
+  padding: 2px;
+  border-radius: 4px;
+  transition: all var(--transition-fast);
+}
+
+.toast__close:hover {
+  color: var(--color-ice-white);
+  background: rgba(255, 255, 255, 0.1);
+}

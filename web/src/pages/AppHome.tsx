@@ -5,6 +5,8 @@ import { api } from '../../convex/_generated/api'
 import { AssessmentChat } from '../components/AssessmentChat'
 import { CourseRoadmap } from '../components/CourseRoadmap'
 import { LessonPlayer } from '../components/LessonPlayer'
+import { CustomSelect } from '../components/CustomSelect'
+import { useToast } from '../components/Toast'
 
 type Modality = 'text' | 'audio' | 'visual'
 
@@ -16,11 +18,37 @@ type AppView =
     | { name: 'roadmap'; courseData: any; assessmentScore: number; assessmentFeedback: string }
     | { name: 'lesson'; courseData: any; assessmentScore: number; assessmentFeedback: string; chapterIdx: number; lessonIdx: number; lessonContent?: any; isGenerating: boolean; exercises: any[] }
 
+const TARGET_LEVELS = [
+    { value: 'Beginner', label: '🌱 Beginner' },
+    { value: 'Intermediate', label: '🔥 Intermediate' },
+    { value: 'Advanced', label: '🚀 Advanced' },
+]
+
+const LANGUAGES = [
+    { value: 'English', label: '🇬🇧 English' },
+    { value: 'Spanish', label: '🇪🇸 Spanish' },
+    { value: 'French', label: '🇫🇷 French' },
+    { value: 'German', label: '🇩🇪 German' },
+    { value: 'Portuguese', label: '🇧🇷 Portuguese' },
+    { value: 'Italian', label: '🇮🇹 Italian' },
+    { value: 'Dutch', label: '🇳🇱 Dutch' },
+    { value: 'Russian', label: '🇷🇺 Russian' },
+    { value: 'Japanese', label: '🇯🇵 Japanese' },
+    { value: 'Korean', label: '🇰🇷 Korean' },
+    { value: 'Chinese', label: '🇨🇳 Chinese' },
+    { value: 'Arabic', label: '🇸🇦 Arabic' },
+    { value: 'Hindi', label: '🇮🇳 Hindi' },
+    { value: 'Turkish', label: '🇹🇷 Turkish' },
+    { value: 'Persian', label: '🇮🇷 Persian' },
+]
+
 export default function AppHome() {
     const [topic, setTopic] = useState('')
     const [targetLevel, setTargetLevel] = useState('Intermediate')
+    const [language, setLanguage] = useState('English')
     const [modalities, setModalities] = useState<Modality[]>(['text'])
     const [view, setView] = useState<AppView>({ name: 'home' })
+    const { showToast } = useToast()
 
     const assessBaseline = useAction(api.aiPipeline.assessBaseline)
     const gradeAndGenerate = useAction(api.aiPipeline.gradeAssessmentAndGenerateCurriculum)
@@ -36,12 +64,12 @@ export default function AppHome() {
         if (!topic.trim()) return
         setView({ name: 'assessing' })
         try {
-            const data = await assessBaseline({ topic, targetLevel })
+            const data = await assessBaseline({ topic, targetLevel, language })
             setView({ name: 'answering', assessmentData: data })
         } catch (err) {
             console.error(err)
             setView({ name: 'home' })
-            alert("Failed to generate assessment.")
+            showToast('Failed to generate assessment. Please try again.', 'error')
         }
     }
 
@@ -52,7 +80,7 @@ export default function AppHome() {
 
         try {
             const result = await gradeAndGenerate({
-                topic, targetLevel, modalities,
+                topic, targetLevel, modalities, language,
                 questions: assessData.questions, answers,
             })
             setView({
@@ -63,7 +91,7 @@ export default function AppHome() {
             })
         } catch (err) {
             console.error(err)
-            alert('Failed to generate curriculum.')
+            showToast('Failed to generate curriculum. Please try again.', 'error')
             setView({ name: 'home' })
         }
     }
@@ -77,11 +105,11 @@ export default function AppHome() {
         setView({ name: 'lesson', courseData, assessmentScore, assessmentFeedback, chapterIdx, lessonIdx, isGenerating: true, exercises: [] })
 
         try {
-            const lessonContent = await generateLessonDirect({ topic, targetLevel, lessonTitle, chapterTitle })
+            const lessonContent = await generateLessonDirect({ topic, targetLevel, lessonTitle, chapterTitle, language })
             setView({ name: 'lesson', courseData, assessmentScore, assessmentFeedback, chapterIdx, lessonIdx, lessonContent, isGenerating: false, exercises: (lessonContent as any).exercises || [] })
         } catch (err) {
             console.error(err)
-            alert('Failed to generate lesson.')
+            showToast('Failed to generate lesson. Please try again.', 'error')
             setView({ name: 'roadmap', courseData, assessmentScore, assessmentFeedback })
         }
     }
@@ -123,19 +151,22 @@ export default function AppHome() {
 
                             <div>
                                 <label style={{ display: 'block', marginBottom: 'var(--space-sm)', fontWeight: 600 }}>Target Level</label>
-                                <select
+                                <CustomSelect
+                                    options={TARGET_LEVELS}
                                     value={targetLevel}
-                                    onChange={(e) => setTargetLevel(e.target.value)}
-                                    style={{
-                                        width: '100%', padding: 'var(--space-md)', borderRadius: 'var(--radius-sm)',
-                                        border: '1px solid rgba(6, 182, 212, 0.3)', background: 'rgba(10, 10, 10, 0.9)',
-                                        color: 'white', fontSize: '1rem', fontFamily: 'inherit', cursor: 'pointer'
-                                    }}
-                                >
-                                    <option value="Beginner">🌱 Beginner</option>
-                                    <option value="Intermediate">🔥 Intermediate</option>
-                                    <option value="Advanced">🚀 Advanced</option>
-                                </select>
+                                    onChange={setTargetLevel}
+                                    style={{ width: '100%' }}
+                                />
+                            </div>
+
+                            <div>
+                                <label style={{ display: 'block', marginBottom: 'var(--space-sm)', fontWeight: 600 }}>Course Language</label>
+                                <CustomSelect
+                                    options={LANGUAGES}
+                                    value={language}
+                                    onChange={setLanguage}
+                                    style={{ width: '100%' }}
+                                />
                             </div>
 
                             <div>
