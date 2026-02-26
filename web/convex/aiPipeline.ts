@@ -10,12 +10,25 @@ function fillTemplate(template: string, vars: Record<string, any>): string {
   return template.replace(/\{\{(\w+)\}\}/g, (_, key) => vars[key] !== undefined ? String(vars[key]) : "");
 }
 
+function sanitizeJson(raw: string): string {
+  let s = raw;
+  // Remove escaped single quotes (e.g. Don\'t → Don't → then re-escape for valid JSON)
+  // The LLM outputs backslash-single-quote which is invalid JSON
+  s = s.replace(/\\'/g, "'");
+  // Remove trailing commas before } or ]
+  s = s.replace(/,\s*([}\]])/g, '$1');
+  return s;
+}
+
 function parseJsonResponse(raw: string): any {
   let cleaned = raw.trim();
   // Strip markdown code fences
   if (cleaned.startsWith('```')) {
     cleaned = cleaned.replace(/^```(?:json)?\n?/, '').replace(/\n?```$/, '');
   }
+
+  cleaned = sanitizeJson(cleaned);
+
   // First try raw parse
   try {
     return JSON.parse(cleaned);
@@ -28,13 +41,41 @@ function parseJsonResponse(raw: string): any {
       try {
         return JSON.parse(jsonStr);
       } catch (e2) {
-        console.error('[AI Pipeline] Failed to parse extracted JSON:', jsonStr, e2);
+        console.error('[AI Pipeline] Failed to parse extracted JSON:', jsonStr.substring(0, 500), e2);
         throw new Error('AI returned invalid JSON');
       }
     }
-    console.error('[AI Pipeline] No JSON object found in response:', cleaned);
+    console.error('[AI Pipeline] No JSON object found in response:', cleaned.substring(0, 500));
     throw new Error('AI returned invalid JSON');
   }
+}
+
+const MAX_PARSE_RETRIES = 3;
+
+/**
+ * Calls the LLM and parses the JSON response, retrying up to 3 times
+ * if the response fails to parse as valid JSON.
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function callAndParseJson(
+  ctx: any,
+  callArgs: Parameters<typeof performNvidiaCall>[1]
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+): Promise<any> {
+  let lastErr: unknown;
+  for (let attempt = 1; attempt <= MAX_PARSE_RETRIES; attempt++) {
+    const completionStr = await performNvidiaCall(ctx, callArgs);
+    try {
+      return parseJsonResponse(completionStr);
+    } catch (parseErr) {
+      lastErr = parseErr;
+      if (attempt < MAX_PARSE_RETRIES) {
+        console.log(`[AI Pipeline] JSON parse failed on attempt ${attempt}/${MAX_PARSE_RETRIES}, retrying...`);
+        continue;
+      }
+    }
+  }
+  throw lastErr;
 }
 
 export const assessBaseline = action({
@@ -43,17 +84,17 @@ export const assessBaseline = action({
     targetLevel: v.string(),
     language: v.optional(v.string()),
   },
-  handler: async (ctx, args) => {
+  handler: async (ctx, args): Promise<{ assessmentMessage: string; questions: string[] }> => {
     const { topic, targetLevel, language = 'English' } = args;
 
-    const systemPrompt = await ctx.runQuery(internal.prompts.getPromptContent, { promptId: "assess_baseline_system" });
-    const userPromptTpl = await ctx.runQuery(internal.prompts.getPromptContent, { promptId: "assess_baseline_user" });
+    const systemPrompt: string | null = await ctx.runQuery(internal.prompts.getPromptContent, { promptId: "assess_baseline_system" });
+    const userPromptTpl: string | null = await ctx.runQuery(internal.prompts.getPromptContent, { promptId: "assess_baseline_user" });
 
     if (!systemPrompt || !userPromptTpl) throw new Error("Prompts not found in DB");
 
     const userPrompt = fillTemplate(userPromptTpl, { topic, targetLevel, language });
 
-    const completionStr = await performNvidiaCall(ctx, {
+    const result = await callAndParseJson(ctx, {
       model: MODEL_FAST,
       messages: [
         { role: "system", content: systemPrompt },
@@ -61,8 +102,7 @@ export const assessBaseline = action({
       ],
       caller: "aiPipeline:assessBaseline"
     });
-
-    return parseJsonResponse(completionStr);
+    return result as { assessmentMessage: string; questions: string[] };
   },
 });
 
@@ -92,7 +132,7 @@ export const gradeAssessmentAndGenerateCurriculum = action({
       answers: answers.join('\n')
     });
 
-    const completionStr = await performNvidiaCall(ctx, {
+    const result = await callAndParseJson(ctx, {
       model: MODEL_COMPLEX,
       messages: [
         { role: "system", content: systemPromptGrading },
@@ -100,8 +140,6 @@ export const gradeAssessmentAndGenerateCurriculum = action({
       ],
       caller: "aiPipeline:gradeAssessmentAndGenerateCurriculum"
     });
-
-    const result = parseJsonResponse(completionStr);
 
     return {
       assessmentScore: result.score,
@@ -145,16 +183,16 @@ export const generateLessonContent = action({
       lessonContext: textContent.substring(0, 1500)
     });
 
-    const exerciseResStr = await performNvidiaCall(ctx, {
-      model: MODEL_FAST,
-      messages: [{ role: "system", content: exercisePrompt }],
-      caller: "aiPipeline:generateLessonContent:exercises"
-    });
-
     let exercises = [];
-    if (exerciseResStr) {
-      const parsed = parseJsonResponse(exerciseResStr);
+    try {
+      const parsed = await callAndParseJson(ctx, {
+        model: MODEL_FAST,
+        messages: [{ role: "system", content: exercisePrompt }],
+        caller: "aiPipeline:generateLessonContent:exercises"
+      });
       exercises = parsed.exercises || [];
+    } catch (err) {
+      console.error("[AI Pipeline] Exercise generation failed after retries:", err);
     }
 
     // 4. Generate TTS Audio with ElevenLabs (if course requested audio)
@@ -244,17 +282,17 @@ export const generateLessonDirect = action({
       lessonContext: textContent.substring(0, 1500)
     });
 
-    const exerciseResStr = await performNvidiaCall(ctx, {
-      model: MODEL_FAST,
-      messages: [{ role: "system", content: exercisePrompt }],
-      maxTokens: 2048,
-      caller: "aiPipeline:generateLessonDirect:exercises"
-    });
-
     let exercises = [];
-    if (exerciseResStr) {
-      const parsed = parseJsonResponse(exerciseResStr);
+    try {
+      const parsed = await callAndParseJson(ctx, {
+        model: MODEL_FAST,
+        messages: [{ role: "system", content: exercisePrompt }],
+        maxTokens: 2048,
+        caller: "aiPipeline:generateLessonDirect:exercises"
+      });
       exercises = parsed.exercises || [];
+    } catch (err) {
+      console.error("[AI Pipeline] Exercise generation failed after retries:", err);
     }
 
     return { text: textContent, exercises };
