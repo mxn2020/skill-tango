@@ -41,16 +41,17 @@ export const assessBaseline = action({
   args: {
     topic: v.string(),
     targetLevel: v.string(),
+    language: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    const { topic, targetLevel } = args;
+    const { topic, targetLevel, language = 'English' } = args;
 
     const systemPrompt = await ctx.runQuery(internal.prompts.getPromptContent, { promptId: "assess_baseline_system" });
     const userPromptTpl = await ctx.runQuery(internal.prompts.getPromptContent, { promptId: "assess_baseline_user" });
 
     if (!systemPrompt || !userPromptTpl) throw new Error("Prompts not found in DB");
 
-    const userPrompt = fillTemplate(userPromptTpl, { topic, targetLevel });
+    const userPrompt = fillTemplate(userPromptTpl, { topic, targetLevel, language });
 
     const completionStr = await performNvidiaCall(ctx, {
       model: MODEL_FAST,
@@ -72,9 +73,10 @@ export const gradeAssessmentAndGenerateCurriculum = action({
     modalities: v.array(v.string()),
     questions: v.array(v.string()),
     answers: v.array(v.string()),
+    language: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    const { topic, targetLevel, modalities, questions, answers } = args;
+    const { topic, targetLevel, modalities, questions, answers, language = 'English' } = args;
 
     const systemPromptGrading = await ctx.runQuery(internal.prompts.getPromptContent, { promptId: "grade_assessment_system" });
     const userPromptGradingTpl = await ctx.runQuery(internal.prompts.getPromptContent, { promptId: "grade_assessment_user" });
@@ -84,6 +86,7 @@ export const gradeAssessmentAndGenerateCurriculum = action({
     const userPromptGrading = fillTemplate(userPromptGradingTpl, {
       topic,
       targetLevel,
+      language,
       modalities: modalities.join(', '),
       questions: questions.join('\n'),
       answers: answers.join('\n')
@@ -210,9 +213,10 @@ export const generateLessonDirect = action({
     targetLevel: v.string(),
     lessonTitle: v.string(),
     chapterTitle: v.string(),
+    language: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    const { topic, targetLevel, lessonTitle, chapterTitle } = args;
+    const { topic, targetLevel, lessonTitle, chapterTitle, language = 'English' } = args;
 
     const systemPromptGenerator = await ctx.runQuery(internal.prompts.getPromptContent, { promptId: "content_generator_system" });
     if (!systemPromptGenerator) throw new Error("Prompts not found in DB");
@@ -221,7 +225,8 @@ export const generateLessonDirect = action({
       lessonTitle,
       chapterTitle,
       topic,
-      targetLevel
+      targetLevel,
+      language
     });
 
     const textContent = await performNvidiaCall(ctx, {

@@ -6,12 +6,19 @@ You need to assess the user's baseline knowledge on a specific topic before gene
 
 CRITICAL INSTRUCTION: You MUST respond with ONLY a raw JSON object. No markdown, no code fences, no explanation, no commentary before or after the JSON. Your entire response must start with { and end with }.
 
-The JSON object MUST match this exact structure:
-{"assessmentMessage":"A friendly entry message introducing the test...","questions":["Question 1 (Basic)...","Question 2 (moderate)...","Question 3 (challenging)..."]}`;
+## Expected Response Format
+
+{
+  "assessmentMessage": "string — A friendly entry message introducing the test (2-3 sentences)",
+  "questions": ["string — Question 1 (Basic)", "string — Question 2 (Moderate)", "string — Question 3 (Challenging)"]
+}
+
+Return your response in the expected response format above. Do not include any text outside the JSON object.`;
 
 const ASSESS_BASELINE_USER = `Generate a 3-question baseline assessment for a user wanting to learn about "{{topic}}".
 Their self-reported target level is "{{targetLevel}}".
-Remember: respond with ONLY raw JSON. No other text.`;
+Generate all content in {{language}}.
+Remember: respond with ONLY raw JSON matching the expected response format. No other text.`;
 
 const GRADE_ASSESSMENT_SYSTEM = `You are the master curriculum builder for Skill-Tango.
 You receive a user's answers to a 3-question baseline test.
@@ -21,8 +28,30 @@ You receive a user's answers to a 3-question baseline test.
 
 CRITICAL INSTRUCTION: You MUST respond with ONLY a raw JSON object. No markdown, no code fences, no explanation, no commentary before or after the JSON. Your entire response must start with { and end with }.
 
-The JSON object MUST match this exact structure:
-{"score":0,"feedback":"A short, encouraging paragraph analyzing their performance.","curriculum":{"title":"Course Title","description":"Short description","chapters":[{"title":"Chapter 1","lessons":[{"title":"Lesson 1.1"}]}]}}`;
+IMPORTANT: Do NOT use apostrophes or single quotes inside string values. Use double quotes only. Avoid special characters that could break JSON parsing.
+
+## Expected Response Format
+
+{
+  "score": 0,
+  "feedback": "string — A short, encouraging paragraph analyzing their performance",
+  "curriculum": {
+    "title": "string — Course Title",
+    "description": "string — Short description of the course",
+    "chapters": [
+      {
+        "title": "string — Chapter title",
+        "lessons": [
+          {
+            "title": "string — Lesson title"
+          }
+        ]
+      }
+    ]
+  }
+}
+
+Return your response in the expected response format above. Do not include any text outside the JSON object.`;
 
 const GRADE_ASSESSMENT_USER = `User Topic: {{topic}}
 Target Level: {{targetLevel}}
@@ -34,11 +63,13 @@ Assessment Questions:
 User Answers:
 {{answers}}
 
-Grade them and generate their custom curriculum. Respond with ONLY raw JSON. No other text.`;
+Generate all content in {{language}}.
+Grade them and generate their custom curriculum. Return your response in the expected response format. Respond with ONLY raw JSON. No other text.`;
 
 const CONTENT_GENERATOR_SYSTEM = `You are an expert AI tutor for the Skill-Tango platform.
 Write a thorough, engaging lesson on: "{{lessonTitle}}" (part of "{{chapterTitle}}" in a course about "{{topic}}").
 The student's target level is: {{targetLevel}}.
+Generate all content in {{language}}.
 Format as clean, readable paragraphs. Use concrete analogies. Keep the tone encouraging and engaging. 700-900 words.
 NOTE: For this prompt you should return plain text (not JSON). Just write the lesson content directly.`;
 
@@ -48,8 +79,22 @@ Lesson context:
 
 CRITICAL INSTRUCTION: You MUST respond with ONLY a raw JSON object. No markdown, no code fences, no explanation, no commentary before or after the JSON. Your entire response must start with { and end with }.
 
-The JSON object MUST match this exact structure:
-{"exercises":[{"question":"...","options":["A","B","C","D"],"correctAnswer":"A","explanation":"..."},{"question":"...","options":["A","B","C","D"],"correctAnswer":"C","explanation":"..."}]}`;
+IMPORTANT: Do NOT use apostrophes or single quotes inside string values. Use double quotes only. Avoid special characters that could break JSON parsing.
+
+## Expected Response Format
+
+{
+  "exercises": [
+    {
+      "question": "string — The quiz question",
+      "options": ["string — Option A", "string — Option B", "string — Option C", "string — Option D"],
+      "correctAnswer": "string — The correct option text (e.g. Option A)",
+      "explanation": "string — Why this is the correct answer"
+    }
+  ]
+}
+
+Return your response in the expected response format above. Do not include any text outside the JSON object.`;
 
 const DEFAULT_PROMPTS = [
     {
