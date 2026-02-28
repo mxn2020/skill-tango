@@ -37,9 +37,19 @@ export default function LoginPage() {
                 password,
                 ...(mode === 'register' ? { flow: "signUp", name } : { flow: "signIn" }),
             })
-            // Auth state change will trigger the useEffect above
         } catch (err) {
-            setError(err instanceof Error ? err.message : 'Authentication failed')
+            const message = err instanceof Error ? err.message : String(err)
+            if (message.includes('InvalidAccountId') || message.includes('Could not find')) {
+                setError('No account found with this email.')
+            } else if (message.includes('InvalidSecret') || message.includes('Invalid password')) {
+                setError('Incorrect password.')
+            } else if (message.includes('AccountAlreadyExists')) {
+                setError('An account with this email already exists.')
+            } else if (message.includes('TooManyFailedAttempts')) {
+                setError('Too many failed attempts. Try again later.')
+            } else {
+                setError('Authentication failed. Please try again.')
+            }
         } finally {
             setLoading(false)
         }
