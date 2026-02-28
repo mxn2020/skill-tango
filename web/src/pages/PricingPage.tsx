@@ -1,12 +1,15 @@
 import { useAction, useQuery, useConvexAuth } from 'convex/react'
 import { api } from '../../convex/_generated/api'
 import { useNavigate } from 'react-router-dom'
+import { useState } from 'react'
+import { MissingConfigDialog } from '../components/MissingConfigDialog'
 
 export default function PricingPage() {
     const { isAuthenticated } = useConvexAuth()
     const subscription = useQuery(api.stripe.getSubscription)
     const createCheckout = useAction(api.stripe.createCheckoutSession)
     const navigate = useNavigate()
+    const [configError, setConfigError] = useState<string | null>(null)
 
     const handleUpgrade = async (plan: 'pro' | 'enterprise') => {
         if (!isAuthenticated) {
@@ -17,7 +20,12 @@ export default function PricingPage() {
             const { url } = await createCheckout({ plan })
             if (url) window.location.href = url
         } catch (err) {
-            alert(err instanceof Error ? err.message : 'Failed to create checkout')
+            const msg = err instanceof Error ? err.message : String(err)
+            if (msg.includes('not configured')) {
+                setConfigError(msg)
+            } else {
+                alert(msg)
+            }
         }
     }
 
@@ -25,6 +33,12 @@ export default function PricingPage() {
 
     return (
         <div className="pricing-page">
+            {configError && (
+                <MissingConfigDialog
+                    message={configError}
+                    onClose={() => setConfigError(null)}
+                />
+            )}
             <div style={{ textAlign: 'center', marginBottom: 'var(--space-2xl, 48px)' }}>
                 <h1>Simple, Transparent Pricing</h1>
                 <p style={{ color: 'var(--color-smoke-gray, #999)', fontSize: '1.1rem', marginTop: '8px' }}>

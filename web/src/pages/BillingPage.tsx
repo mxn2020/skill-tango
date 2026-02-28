@@ -3,12 +3,15 @@ import { useNavigate } from 'react-router-dom'
 import { api } from '../../convex/_generated/api'
 import { CreditCard, Check, ArrowLeft } from 'lucide-react'
 import { Link } from 'react-router-dom'
+import { useState } from 'react'
+import { MissingConfigDialog } from '../components/MissingConfigDialog'
 
 export default function BillingPage() {
     const { isAuthenticated } = useConvexAuth()
     const subscription = useQuery(api.stripe.getSubscription)
     const createCheckout = useAction(api.stripe.createCheckoutSession)
     const navigate = useNavigate()
+    const [configError, setConfigError] = useState<string | null>(null)
 
     if (!isAuthenticated) {
         navigate('/login')
@@ -22,7 +25,12 @@ export default function BillingPage() {
             const { url } = await createCheckout({ plan })
             if (url) window.location.href = url
         } catch (err) {
-            alert(err instanceof Error ? err.message : 'Failed to create checkout')
+            const msg = err instanceof Error ? err.message : String(err)
+            if (msg.includes('not configured')) {
+                setConfigError(msg)
+            } else {
+                alert(msg)
+            }
         }
     }
 
@@ -69,6 +77,12 @@ export default function BillingPage() {
 
     return (
         <div className="billing-page">
+            {configError && (
+                <MissingConfigDialog
+                    message={configError}
+                    onClose={() => setConfigError(null)}
+                />
+            )}
             <div style={{ marginBottom: '32px' }}>
                 <Link to="/settings" className="btn btn--ghost" style={{ marginBottom: '16px', display: 'inline-flex' }}>
                     <ArrowLeft size={16} /> Back to Settings

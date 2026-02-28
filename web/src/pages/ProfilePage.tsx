@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Zap, Flame, Crown, User, Settings, CreditCard } from 'lucide-react'
 import { SkeletonProfile } from '../components/Skeleton'
+import { MissingConfigDialog } from '../components/MissingConfigDialog'
 
 export default function ProfilePage() {
     const { isAuthenticated } = useConvexAuth()
@@ -16,6 +17,7 @@ export default function ProfilePage() {
     const [editingName, setEditingName] = useState(false)
     const [nameDraft, setNameDraft] = useState('')
     const [loading, setLoading] = useState(false)
+    const [configError, setConfigError] = useState<string | null>(null)
 
     if (!isAuthenticated) {
         navigate('/login')
@@ -36,7 +38,12 @@ export default function ProfilePage() {
             const { url } = await createPortal()
             window.location.href = url
         } catch (err) {
-            alert(err instanceof Error ? err.message : 'Failed to open portal')
+            const msg = err instanceof Error ? err.message : String(err)
+            if (msg.includes('not configured')) {
+                setConfigError(msg)
+            } else {
+                alert(msg)
+            }
         } finally {
             setLoading(false)
         }
@@ -50,6 +57,12 @@ export default function ProfilePage() {
 
     return (
         <div className="profile-page">
+            {configError && (
+                <MissingConfigDialog
+                    message={configError}
+                    onClose={() => setConfigError(null)}
+                />
+            )}
             <h1><User size={28} style={{ marginRight: 8 }} /> My Profile</h1>
 
             <div className="profile-grid">
