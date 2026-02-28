@@ -13,10 +13,15 @@ import type * as aiPipeline from "../aiPipeline.js";
 import type * as auditLog from "../auditLog.js";
 import type * as auth from "../auth.js";
 import type * as content from "../content.js";
+import type * as courses from "../courses.js";
 import type * as http from "../http.js";
+import type * as modelCosts from "../modelCosts.js";
+import type * as modelTests from "../modelTests.js";
 import type * as nvidia from "../nvidia.js";
 import type * as prompts from "../prompts.js";
+import type * as rateLimit from "../rateLimit.js";
 import type * as stripe from "../stripe.js";
+import type * as usageLimits from "../usageLimits.js";
 import type * as users from "../users.js";
 
 import type {
@@ -31,10 +36,15 @@ declare const fullApi: ApiFromModules<{
   auditLog: typeof auditLog;
   auth: typeof auth;
   content: typeof content;
+  courses: typeof courses;
   http: typeof http;
+  modelCosts: typeof modelCosts;
+  modelTests: typeof modelTests;
   nvidia: typeof nvidia;
   prompts: typeof prompts;
+  rateLimit: typeof rateLimit;
   stripe: typeof stripe;
+  usageLimits: typeof usageLimits;
   users: typeof users;
 }>;
 

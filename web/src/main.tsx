@@ -5,6 +5,8 @@ import { ConvexReactClient } from "convex/react";
 import App from './App.tsx'
 import { ToastProvider } from './components/Toast.tsx'
 import './index.css'
+import './i18n/i18n'
+import { Analytics } from "@vercel/analytics/react"
 
 const convexUrl = import.meta.env.VITE_CONVEX_URL as string | undefined;
 
@@ -68,6 +70,8 @@ if (!convexUrl) {
           <App />
         </ToastProvider>
       </ConvexAuthProvider>
+
+      <Analytics />
     </React.StrictMode>,
   );
 }

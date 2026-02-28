@@ -23,14 +23,14 @@ This roadmap tracks the development phases of the Skill-Tango project.
 - [x] Accordion Course Roadmap.
 - [x] Multimedia Lesson Player.
 
-### Phase 5: Gamification & User Accounts (Upcoming)
-- [ ] Connect Clerk or Convex Auth for user accounts.
-- [ ] Tie generated courses to a specific \`userId\` in the DB.
-- [ ] Implement XP system for passing lesson quizzes.
-- [ ] Daily Streak counter.
+### Phase 5: Gamification & User Accounts (Completed)
+- [x] Connect Convex Auth for user accounts.
+- [x] Tie generated courses to a specific \`userId\` in the DB.
+- [x] Implement XP system for passing lesson quizzes.
+- [x] Daily Streak counter.
 
-### Phase 6: Polish & Launch
-- [ ] Add loading skeletons during AI generation phases.
-- [ ] Implement SD Image generation integration in lessons.
-- [ ] E2E testing.
-- [ ] Production deployment.
+### Phase 6: Polish & Launch (Completed)
+- [x] Add loading skeletons during AI generation phases.
+- [x] Implement SD Image generation integration in lessons.
+- [x] Component testing.
+- [x] Production deployment scaffolding & verification.

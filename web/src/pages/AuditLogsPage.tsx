@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useQuery } from 'convex/react'
 import { api } from '../../convex/_generated/api'
 import { CustomSelect } from '../components/CustomSelect'
+import { SkeletonLine, SkeletonCard } from '../components/Skeleton'
 
 type Category = 'auth' | 'admin' | 'system' | 'billing' | undefined
 
@@ -46,7 +47,21 @@ export default function AuditLogsPage() {
     }
 
     if (logs === undefined) {
-        return <div className="loading"><div className="loading__spinner" /><p className="loading__text">Loading audit logs…</p></div>
+        return (
+            <div style={{ maxWidth: '960px', margin: '0 auto', padding: 'var(--space-xl) var(--space-md)' }}>
+                <div style={{ marginBottom: 'var(--space-xl)' }}>
+                    <SkeletonLine width="30%" height="2.5rem" />
+                    <div style={{ marginTop: 'var(--space-sm)' }}>
+                        <SkeletonLine width="60%" />
+                    </div>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-md)' }}>
+                    <SkeletonCard />
+                    <SkeletonCard />
+                    <SkeletonCard />
+                </div>
+            </div>
+        )
     }
 
     if (logs.length === 0 && !stats) {

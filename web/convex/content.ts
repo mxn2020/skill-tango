@@ -1,5 +1,24 @@
-import { internalMutation, internalQuery } from "./_generated/server";
+import { internalMutation, internalQuery, query } from "./_generated/server";
 import { v } from "convex/values";
+import { auth } from "./auth";
+
+export const getLessonFullContent = query({
+    args: { lessonId: v.id("lessons") },
+    handler: async (ctx, args) => {
+        const userId = await auth.getUserId(ctx);
+        if (!userId) return null;
+
+        const lesson = await ctx.db.get(args.lessonId);
+        if (!lesson) return null;
+
+        const exercises = await ctx.db
+            .query("exercises")
+            .withIndex("by_lesson", (q) => q.eq("lessonId", args.lessonId))
+            .collect();
+
+        return { ...lesson, exercises };
+    },
+});
 
 export const getLessonDetails = internalQuery({
     args: { lessonId: v.id("lessons") },
@@ -22,6 +41,7 @@ export const saveLessonContent = internalMutation({
         lessonId: v.id("lessons"),
         textContent: v.string(),
         audioStorageId: v.optional(v.id("_storage")),
+        imageUrl: v.optional(v.string()),
     },
     handler: async (ctx, args) => {
         let audioUrl = undefined;
@@ -32,6 +52,7 @@ export const saveLessonContent = internalMutation({
         await ctx.db.patch(args.lessonId, {
             textContent: args.textContent,
             audioUrl: audioUrl ?? undefined,
+            imageUrl: args.imageUrl,
             status: "ready",
         });
     },

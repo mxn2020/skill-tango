@@ -6,7 +6,7 @@ type NvidiaMessage = {
 };
 
 // Extract text-only content from messages (strip base64 images for log readability)
-function extractPromptText(messages: NvidiaMessage[]): {
+export function extractPromptText(messages: NvidiaMessage[]): {
     systemPrompt: string
     userPromptText: string
     hasImage: boolean
@@ -189,4 +189,44 @@ export async function performNvidiaCall(ctx: any, args: {
             console.error("[NVIDIA API Action] Failed to save log entry:", logErr);
         }
     }
+}
+
+/**
+ * Generates an image using NVIDIA API (e.g., sdxl-turbo or similar)
+ * Returns a base64 encoded string of the image.
+ */
+export async function generateImage(prompt: string): Promise<string> {
+    const apiKey = process.env.NVIDIA_API_KEY;
+    if (!apiKey) {
+        throw new Error("NVIDIA_API_KEY is not configured in Convex environment variables.");
+    }
+
+    const response = await fetch('https://integrate.api.nvidia.com/v1/images/generations', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${apiKey}`,
+            'Accept': 'application/json',
+        },
+        body: JSON.stringify({
+            model: "stabilityai/stable-diffusion-xl-base-1.0",
+            prompt: prompt.substring(0, 1000), // Ensure it's not too long
+            n: 1,
+            response_format: "b64_json",
+            size: "1024x1024"
+        }),
+    });
+
+    if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`NVIDIA Image API error (${response.status}): ${errorText}`);
+    }
+
+    const data = await response.json() as any;
+    const b64 = data.data?.[0]?.b64_json;
+    if (!b64) {
+        throw new Error("NVIDIA Image API did not return b64_json");
+    }
+
+    return b64;
 }

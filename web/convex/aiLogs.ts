@@ -1,4 +1,4 @@
-import { internalMutation } from "./_generated/server";
+import { internalMutation, query } from "./_generated/server";
 import { v } from "convex/values";
 
 /**
@@ -30,5 +30,15 @@ export const saveLog = internalMutation({
     },
     handler: async (ctx, args) => {
         return await ctx.db.insert("aiLogs", args);
+    },
+});
+
+export const list = query({
+    args: {},
+    handler: async (ctx) => {
+        return await ctx.db
+            .query("aiLogs")
+            .order("desc")
+            .take(100);
     },
 });

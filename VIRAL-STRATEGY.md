@@ -9,7 +9,7 @@ The dynamic Course Roadmap (Skill Tree) is beautifully rendered. When the AI gen
 - **Example Call to Action**: "I just generated a custom 2-week curriculum to go from Beginner to Advanced React Server Components. View my tree."
 
 ### 2. The Gamified Roast (Baseline Assessment)
-Similar to to the Guardrail in Overstay, if a user fundamentally bombs the baseline assessment chat, the AI should deliver a gentle, humorous "roast" about their knowledge level before building the curriculum. This is highly shareable content.
+Similar to to the Guardrail in JustOneLastDrink, if a user fundamentally bombs the baseline assessment chat, the AI should deliver a gentle, humorous "roast" about their knowledge level before building the curriculum. This is highly shareable content.
 
 ### 3. Open Source Curriculum Links
 Users can share a public, read-only link of the AI-generated textual course content. If someone else likes the course structure, they can click "Clone into My Courses" or "Take my own Assessment" directly from the shared dashboard.

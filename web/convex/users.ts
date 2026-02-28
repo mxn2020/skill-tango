@@ -1,6 +1,55 @@
-import { query, mutation } from "./_generated/server";
+import { query, mutation, internalQuery, internalMutation } from "./_generated/server";
 import { v } from "convex/values";
 import { auth } from "./auth";
+
+// ---- Internal helpers (for actions like stripe webhooks) ----
+
+export const getProfileByUserId = internalQuery({
+    args: { userId: v.string() },
+    handler: async (ctx, { userId }) => {
+        return await ctx.db
+            .query("userProfiles")
+            .withIndex("by_userId", (q) => q.eq("userId", userId))
+            .first();
+    },
+});
+
+export const updatePlanInternal = internalMutation({
+    args: {
+        profileId: v.id("userProfiles"),
+        plan: v.union(v.literal("free"), v.literal("pro"), v.literal("enterprise")),
+        stripeCustomerId: v.optional(v.string()),
+    },
+    handler: async (ctx, { profileId, plan, stripeCustomerId }) => {
+        const patch: any = { plan };
+        if (stripeCustomerId) patch.stripeCustomerId = stripeCustomerId;
+        await ctx.db.patch(profileId, patch);
+    },
+});
+
+export const ensureProfileInternal = internalMutation({
+    args: { userId: v.string() },
+    handler: async (ctx, { userId }) => {
+        const existing = await ctx.db
+            .query("userProfiles")
+            .withIndex("by_userId", (q) => q.eq("userId", userId))
+            .first();
+
+        if (!existing) {
+            await ctx.db.insert("userProfiles", {
+                userId,
+                name: "",
+                role: "user",
+                xp: 0,
+                streak: 0,
+                lastActiveAt: Date.now(),
+                plan: "free",
+            });
+        }
+    },
+});
+
+// ---- Queries ----
 
 // Get the current authenticated user's profile
 export const getMe = query({
@@ -35,6 +84,26 @@ export const getMe = query({
     },
 });
 
+// Admin: list all users
+export const listUsers = query({
+    args: {},
+    handler: async (ctx) => {
+        const userId = await auth.getUserId(ctx);
+        if (!userId) return [];
+
+        const profile = await ctx.db
+            .query("userProfiles")
+            .withIndex("by_userId", (q) => q.eq("userId", userId))
+            .first();
+
+        if (profile?.role !== "admin") return [];
+
+        return await ctx.db.query("userProfiles").collect();
+    },
+});
+
+// ---- Mutations ----
+
 // Create or update user profile after first login
 export const ensureProfile = mutation({
     args: {},
@@ -59,24 +128,6 @@ export const ensureProfile = mutation({
                 plan: "free",
             });
         }
-    },
-});
-
-// Admin: list all users
-export const listUsers = query({
-    args: {},
-    handler: async (ctx) => {
-        const userId = await auth.getUserId(ctx);
-        if (!userId) return [];
-
-        const profile = await ctx.db
-            .query("userProfiles")
-            .withIndex("by_userId", (q) => q.eq("userId", userId))
-            .first();
-
-        if (profile?.role !== "admin") return [];
-
-        return await ctx.db.query("userProfiles").collect();
     },
 });
 
@@ -116,5 +167,151 @@ export const setRole = mutation({
             }),
             timestamp: Date.now(),
         });
+    },
+});
+
+// Update user profile (name)
+export const updateProfile = mutation({
+    args: {
+        name: v.string(),
+    },
+    handler: async (ctx, { name }) => {
+        const userId = await auth.getUserId(ctx);
+        if (!userId) throw new Error("Not authenticated");
+
+        const profile = await ctx.db
+            .query("userProfiles")
+            .withIndex("by_userId", (q) => q.eq("userId", userId))
+            .first();
+
+        if (profile) {
+            await ctx.db.patch(profile._id, { name });
+        }
+    },
+});
+
+// Delete user account and all associated data
+export const deleteAccount = mutation({
+    args: {},
+    handler: async (ctx) => {
+        const userId = await auth.getUserId(ctx);
+        if (!userId) throw new Error("Not authenticated");
+
+        // Delete user profile
+        const profile = await ctx.db
+            .query("userProfiles")
+            .withIndex("by_userId", (q) => q.eq("userId", userId))
+            .first();
+
+        if (profile) {
+            await ctx.db.delete(profile._id);
+        }
+
+        // Delete all user courses and related data
+        const courses = await ctx.db
+            .query("courses")
+            .withIndex("by_user", (q) => q.eq("userId", userId))
+            .collect();
+
+        for (const course of courses) {
+            const chapters = await ctx.db
+                .query("chapters")
+                .withIndex("by_course", (q) => q.eq("courseId", course._id))
+                .collect();
+
+            for (const chapter of chapters) {
+                const lessons = await ctx.db
+                    .query("lessons")
+                    .withIndex("by_chapter", (q) => q.eq("chapterId", chapter._id))
+                    .collect();
+
+                for (const lesson of lessons) {
+                    const exercises = await ctx.db
+                        .query("exercises")
+                        .withIndex("by_lesson", (q) => q.eq("lessonId", lesson._id))
+                        .collect();
+                    for (const exercise of exercises) {
+                        await ctx.db.delete(exercise._id);
+                    }
+                    await ctx.db.delete(lesson._id);
+                }
+                await ctx.db.delete(chapter._id);
+            }
+            await ctx.db.delete(course._id);
+        }
+
+        // Delete progress
+        const progress = await ctx.db
+            .query("progress")
+            .withIndex("by_user_item", (q) => q.eq("userId", userId))
+            .collect();
+        for (const p of progress) {
+            await ctx.db.delete(p._id);
+        }
+
+        // Audit log
+        await ctx.db.insert("auditLogs", {
+            action: "user.account_deleted",
+            category: "auth",
+            userId,
+            details: JSON.stringify({ message: "User deleted their account" }),
+            timestamp: Date.now(),
+        });
+    },
+});
+
+// Bootstrap: promote user to admin by email (no auth check — use once then remove)
+export const bootstrapAdmin = mutation({
+    args: { email: v.string() },
+    handler: async (ctx, { email }) => {
+        const users = await ctx.db.query("users").collect();
+        const user = users.find((u) => u.email === email);
+        if (!user) throw new Error(`No user found with email: ${email}`);
+
+        const profile = await ctx.db
+            .query("userProfiles")
+            .withIndex("by_userId", (q) => q.eq("userId", user._id))
+            .first();
+
+        if (profile) {
+            await ctx.db.patch(profile._id, { role: "admin" });
+            return { status: "updated", profileId: profile._id };
+        } else {
+            const id = await ctx.db.insert("userProfiles", {
+                userId: user._id,
+                name: user.name ?? "",
+                role: "admin",
+                xp: 0,
+                streak: 0,
+                lastActiveAt: Date.now(),
+                plan: "free",
+            });
+            return { status: "created", profileId: id };
+        }
+    },
+});
+
+// Admin utility: fix a user's plan and role by email
+export const fixUserProfile = mutation({
+    args: {
+        email: v.string(),
+        plan: v.union(v.literal("free"), v.literal("pro"), v.literal("enterprise")),
+        role: v.union(v.literal("user"), v.literal("admin")),
+    },
+    handler: async (ctx, { email, plan, role }) => {
+        const users = await ctx.db.query("users").collect();
+        const user = users.find((u) => u.email === email);
+        if (!user) throw new Error(`No user found: ${email}`);
+
+        const profile = await ctx.db
+            .query("userProfiles")
+            .withIndex("by_userId", (q) => q.eq("userId", user._id))
+            .first();
+
+        if (!profile) throw new Error(`No profile found for: ${email}`);
+
+        await ctx.db.patch(profile._id, { plan, role });
+
+        return { status: "fixed", profileId: profile._id, plan, role };
     },
 });

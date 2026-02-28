@@ -1,16 +1,17 @@
 import { action } from "./_generated/server";
 import { internal } from "./_generated/api";
 import { v } from "convex/values";
-import { performNvidiaCall } from "./nvidia";
+import { performNvidiaCall, generateImage } from "./nvidia";
+import { auth } from "./auth";
 
 const MODEL_FAST = "meta/llama-3.1-8b-instruct";
 const MODEL_COMPLEX = "meta/llama-3.1-70b-instruct";
 
-function fillTemplate(template: string, vars: Record<string, any>): string {
+export function fillTemplate(template: string, vars: Record<string, any>): string {
   return template.replace(/\{\{(\w+)\}\}/g, (_, key) => vars[key] !== undefined ? String(vars[key]) : "");
 }
 
-function sanitizeJson(raw: string): string {
+export function sanitizeJson(raw: string): string {
   let s = raw;
   // Remove escaped single quotes (e.g. Don\'t → Don't → then re-escape for valid JSON)
   // The LLM outputs backslash-single-quote which is invalid JSON
@@ -20,7 +21,7 @@ function sanitizeJson(raw: string): string {
   return s;
 }
 
-function parseJsonResponse(raw: string): any {
+export function parseJsonResponse(raw: string): any {
   let cleaned = raw.trim();
   // Strip markdown code fences
   if (cleaned.startsWith('```')) {
@@ -87,6 +88,13 @@ export const assessBaseline = action({
   handler: async (ctx, args): Promise<{ assessmentMessage: string; questions: string[] }> => {
     const { topic, targetLevel, language = 'English' } = args;
 
+    // Plan enforcement + rate limiting
+    const userId = await auth.getUserId(ctx);
+    if (userId) {
+      await ctx.runMutation(internal.usageLimits.checkAndIncrementUsage, { userId, action: "assessment" });
+      await ctx.runMutation(internal.rateLimit.checkRateLimit, { userId, action: "assessment" });
+    }
+
     const systemPrompt: string | null = await ctx.runQuery(internal.prompts.getPromptContent, { promptId: "assess_baseline_system" });
     const userPromptTpl: string | null = await ctx.runQuery(internal.prompts.getPromptContent, { promptId: "assess_baseline_user" });
 
@@ -117,6 +125,13 @@ export const gradeAssessmentAndGenerateCurriculum = action({
   },
   handler: async (ctx, args) => {
     const { topic, targetLevel, modalities, questions, answers, language = 'English' } = args;
+
+    // Plan enforcement + rate limiting
+    const userId = await auth.getUserId(ctx);
+    if (userId) {
+      await ctx.runMutation(internal.usageLimits.checkAndIncrementUsage, { userId, action: "course" });
+      await ctx.runMutation(internal.rateLimit.checkRateLimit, { userId, action: "curriculum" });
+    }
 
     const systemPromptGrading = await ctx.runQuery(internal.prompts.getPromptContent, { promptId: "grade_assessment_system" });
     const userPromptGradingTpl = await ctx.runQuery(internal.prompts.getPromptContent, { promptId: "grade_assessment_user" });
@@ -154,9 +169,24 @@ export const generateLessonContent = action({
     lessonId: v.id("lessons"),
   },
   handler: async (ctx, args) => {
+    // Rate limiting
+    const userId = await auth.getUserId(ctx);
+    if (userId) {
+      await ctx.runMutation(internal.rateLimit.checkRateLimit, { userId, action: "lessonGeneration" });
+    }
+
     const { lesson, chapter, course } = await ctx.runQuery(internal.content.getLessonDetails, {
       lessonId: args.lessonId
     });
+
+    // Check audio modality gating
+    if (course.modalities.includes("audio") && userId) {
+      const audioCheck = await ctx.runQuery(internal.usageLimits.checkModality, { userId, modality: "audio" });
+      if (!audioCheck.allowed) {
+        console.log(`[AI Pipeline] Audio gated for user ${userId}: ${audioCheck.reason}`);
+        // Continue but skip audio generation — don't block the whole lesson
+      }
+    }
 
     const systemPromptGenerator = await ctx.runQuery(internal.prompts.getPromptContent, { promptId: "content_generator_system" });
     if (!systemPromptGenerator) throw new Error("Prompts not found in DB");
@@ -227,11 +257,31 @@ export const generateLessonContent = action({
       }
     }
 
+    // 4.5 Generate Image (if course requested visual)
+    let imageUrl = undefined;
+    if (course.modalities.includes("visual")) {
+      try {
+        const imagePrompt = `An educational illustration for a lesson titled "${lesson.title}" about "${course.topic}". Style: clean, modern, educational vector art, vibrant colors, no text.`;
+        const b64 = await generateImage(imagePrompt);
+        const binaryString = atob(b64);
+        const bytes = new Uint8Array(binaryString.length);
+        for (let i = 0; i < binaryString.length; i++) {
+          bytes[i] = binaryString.charCodeAt(i);
+        }
+        const blob = new Blob([bytes], { type: 'image/jpeg' });
+        const storageId = await ctx.storage.store(blob);
+        imageUrl = await ctx.storage.getUrl(storageId);
+      } catch (err) {
+        console.error("[AI Pipeline] Failed to generate image:", err);
+      }
+    }
+
     // 5. Save everything back to the database
     await ctx.runMutation(internal.content.saveLessonContent, {
       lessonId: args.lessonId,
       textContent,
-      audioStorageId
+      audioStorageId,
+      imageUrl: imageUrl ?? undefined,
     });
 
     if (exercises.length > 0) {
@@ -252,9 +302,10 @@ export const generateLessonDirect = action({
     lessonTitle: v.string(),
     chapterTitle: v.string(),
     language: v.optional(v.string()),
+    modalities: v.optional(v.array(v.string())),
   },
   handler: async (ctx, args) => {
-    const { topic, targetLevel, lessonTitle, chapterTitle, language = 'English' } = args;
+    const { topic, targetLevel, lessonTitle, chapterTitle, language = 'English', modalities = [] } = args;
 
     const systemPromptGenerator = await ctx.runQuery(internal.prompts.getPromptContent, { promptId: "content_generator_system" });
     if (!systemPromptGenerator) throw new Error("Prompts not found in DB");
@@ -295,6 +346,24 @@ export const generateLessonDirect = action({
       console.error("[AI Pipeline] Exercise generation failed after retries:", err);
     }
 
-    return { text: textContent, exercises };
+    let imageUrl = undefined;
+    if (modalities.includes("visual")) {
+      try {
+        const imagePrompt = `An educational illustration for a lesson titled "${lessonTitle}" about "${topic}". Style: clean, modern, educational vector art, vibrant colors, no text.`;
+        const b64 = await generateImage(imagePrompt);
+        const binaryString = atob(b64);
+        const bytes = new Uint8Array(binaryString.length);
+        for (let i = 0; i < binaryString.length; i++) {
+          bytes[i] = binaryString.charCodeAt(i);
+        }
+        const blob = new Blob([bytes], { type: 'image/jpeg' });
+        const storageId = await ctx.storage.store(blob);
+        imageUrl = await ctx.storage.getUrl(storageId);
+      } catch (err) {
+        console.error("[AI Pipeline] Failed to generate image:", err);
+      }
+    }
+
+    return { text: textContent, exercises, imageUrl: imageUrl ?? undefined };
   },
 });

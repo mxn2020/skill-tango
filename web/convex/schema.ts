@@ -15,6 +15,10 @@ export default defineSchema({
         lastActiveAt: v.number(),
         stripeCustomerId: v.optional(v.string()),
         plan: v.optional(v.union(v.literal("free"), v.literal("pro"), v.literal("enterprise"))),
+        // Usage tracking
+        monthlyCoursesCreated: v.optional(v.number()),
+        monthlyAssessments: v.optional(v.number()),
+        usageResetAt: v.optional(v.number()),
     }).index("by_userId", ["userId"]),
 
     // Generated Courses
@@ -69,7 +73,7 @@ export default defineSchema({
         score: v.optional(v.number()), // 0-100 for exercises
     }).index("by_user_item", ["userId", "itemId"]),
 
-    // AI Prompts (CMS-style like overstay)
+    // AI Prompts (CMS-style like justOneLastDrink)
     aiPrompts: defineTable({
         promptId: v.string(),
         name: v.string(),
@@ -119,4 +123,43 @@ export default defineSchema({
         .index("by_category", ["category", "timestamp"])
         .index("by_userId", ["userId", "timestamp"])
         .index("by_action", ["action", "timestamp"]),
+
+    modelTests: defineTable({
+        testRunId: v.string(),
+        model: v.string(),
+        mode: v.string(),
+        imageSize: v.number(),
+        startedAt: v.number(),
+        completedAt: v.number(),
+        durationMs: v.number(),
+        promptTokens: v.number(),
+        completionTokens: v.number(),
+        totalTokens: v.number(),
+        rawResponse: v.string(),
+        parsedResult: v.optional(v.string()),
+        parseSuccess: v.boolean(),
+        hasAllFields: v.boolean(),
+        qualityNotes: v.optional(v.string()),
+        status: v.string(),
+        errorMessage: v.optional(v.string()),
+    })
+        .index("by_testRunId", ["testRunId"])
+        .index("by_model", ["model"])
+        .index("by_startedAt", ["startedAt"]),
+
+    // Rate limiting
+    rateLimits: defineTable({
+        key: v.string(), // e.g. "userId:action"
+        tokens: v.number(),
+        lastRefill: v.number(),
+    }).index("by_key", ["key"]),
+
+    // Admin: model pricing per 1k tokens
+    modelCosts: defineTable({
+        model: v.string(),
+        displayName: v.optional(v.string()),
+        inputCostPer1k: v.number(),
+        outputCostPer1k: v.number(),
+        updatedAt: v.number(),
+    }).index("by_model", ["model"]),
 });

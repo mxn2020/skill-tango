@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { ArrowLeft, Volume2, CheckCircle, XCircle, Loader2 } from 'lucide-react'
+import { ArrowLeft, Volume2, CheckCircle, XCircle } from 'lucide-react'
+import { SkeletonLessonPlayer } from './Skeleton'
 
 type Exercise = {
     type: string
@@ -14,13 +15,14 @@ type Props = {
     chapterTitle: string
     textContent: string
     audioUrl?: string
+    imageUrl?: string
     exercises?: Exercise[]
     isGenerating: boolean
     onBack: () => void
     onComplete: () => void
 }
 
-export function LessonPlayer({ lessonTitle, chapterTitle, textContent, audioUrl, exercises = [], isGenerating, onBack, onComplete }: Props) {
+export function LessonPlayer({ lessonTitle, chapterTitle, textContent, audioUrl, imageUrl, exercises = [], isGenerating, onBack, onComplete }: Props) {
     const [quizPhase, setQuizPhase] = useState<'lesson' | 'quiz' | 'done'>('lesson')
     const [currentEx, setCurrentEx] = useState(0)
     const [selected, setSelected] = useState<string | null>(null)
@@ -52,12 +54,11 @@ export function LessonPlayer({ lessonTitle, chapterTitle, textContent, audioUrl,
 
     if (isGenerating) {
         return (
-            <div className="card animate-fade-in" style={{ maxWidth: '720px', margin: '0 auto', textAlign: 'center', padding: '64px 24px' }}>
-                <Loader2 size={48} className="animate-spin" style={{ color: 'var(--color-cyber-cyan)', margin: '0 auto var(--space-lg)' }} />
-                <h2>Generating lesson content...</h2>
-                <p style={{ color: 'var(--color-smoke-gray)', marginTop: 'var(--space-sm)' }}>
-                    Writing "{lessonTitle}" and creating exercises. This takes ~10 seconds.
-                </p>
+            <div>
+                <div style={{ textAlign: 'center', marginBottom: 'var(--space-2xl)' }}>
+                    <h2 style={{ fontSize: '1.2rem', color: 'var(--color-cyber-cyan)' }}>Generating "{lessonTitle}"...</h2>
+                </div>
+                <SkeletonLessonPlayer />
             </div>
         )
     }
@@ -77,6 +78,12 @@ export function LessonPlayer({ lessonTitle, chapterTitle, textContent, audioUrl,
 
             {quizPhase === 'lesson' && (
                 <div className="card" style={{ marginBottom: 'var(--space-xl)' }}>
+                    {imageUrl && (
+                        <div style={{ marginBottom: 'var(--space-xl)', borderRadius: 'var(--radius-md)', overflow: 'hidden' }}>
+                            <img src={imageUrl} alt={lessonTitle} style={{ width: '100%', height: 'auto', aspectRatio: '16/9', objectFit: 'cover' }} />
+                        </div>
+                    )}
+
                     {audioUrl && (
                         <div style={{
                             display: 'flex', alignItems: 'center', gap: 'var(--space-md)',
@@ -89,9 +96,12 @@ export function LessonPlayer({ lessonTitle, chapterTitle, textContent, audioUrl,
                     )}
 
                     <div
-                        style={{ lineHeight: 1.8, fontSize: '1rem', color: 'var(--color-ice-white)', whiteSpace: 'pre-wrap' }}
-                        dangerouslySetInnerHTML={{ __html: textContent.replace(/\n/g, '<br/>') }}
-                    />
+                        style={{ lineHeight: 1.8, fontSize: '1rem', color: 'var(--color-ice-white)' }}
+                    >
+                        {textContent.split('\n').map((paragraph, i) => (
+                            paragraph.trim() ? <p key={i} style={{ marginBottom: 'var(--space-md)' }}>{paragraph}</p> : <br key={i} />
+                        ))}
+                    </div>
 
                     {exercises.length > 0 && (
                         <button

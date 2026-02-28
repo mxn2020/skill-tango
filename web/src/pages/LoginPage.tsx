@@ -1,14 +1,30 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useAuthActions } from "@convex-dev/auth/react"
+import { useMutation, useConvexAuth } from 'convex/react'
+import { useNavigate } from 'react-router-dom'
+import { api } from '../../convex/_generated/api'
+import { Loader2 } from 'lucide-react'
 
 export default function LoginPage() {
     const { signIn } = useAuthActions()
+    const { isAuthenticated } = useConvexAuth()
+    const ensureProfile = useMutation(api.users.ensureProfile)
+    const navigate = useNavigate()
     const [mode, setMode] = useState<'login' | 'register'>('login')
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
     const [name, setName] = useState('')
     const [error, setError] = useState('')
     const [loading, setLoading] = useState(false)
+
+    // Once authenticated, create profile and redirect
+    useEffect(() => {
+        if (isAuthenticated) {
+            ensureProfile({}).then(() => {
+                navigate('/app', { replace: true })
+            }).catch(console.error)
+        }
+    }, [isAuthenticated, ensureProfile, navigate])
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
@@ -21,6 +37,7 @@ export default function LoginPage() {
                 password,
                 ...(mode === 'register' ? { flow: "signUp", name } : { flow: "signIn" }),
             })
+            // Auth state change will trigger the useEffect above
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Authentication failed')
         } finally {
@@ -92,8 +109,10 @@ export default function LoginPage() {
                         type="submit"
                         className="btn btn--primary login-form__submit"
                         disabled={loading}
+                        style={{ display: 'flex', gap: '8px', alignItems: 'center', justifyContent: 'center' }}
                     >
-                        {loading ? '⏳ Loading...' : mode === 'login' ? 'Sign In' : 'Create Account'}
+                        {loading && <Loader2 size={16} className="animate-spin" />}
+                        {loading ? 'Please wait...' : mode === 'login' ? 'Sign In' : 'Create Account'}
                     </button>
                 </form>
 
