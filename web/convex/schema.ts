@@ -104,6 +104,9 @@ export default defineSchema({
         completionTokens: v.optional(v.number()),
         totalTokens: v.optional(v.number()),
         errorMessage: v.optional(v.string()),
+        inputCostUsd: v.optional(v.number()),
+        outputCostUsd: v.optional(v.number()),
+        totalCostUsd: v.optional(v.number()),
     })
         .index("by_timestamp", ["timestamp"])
         .index("by_model_timestamp", ["model", "timestamp"])
