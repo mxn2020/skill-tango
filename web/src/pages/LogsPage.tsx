@@ -2,6 +2,7 @@ import { useQuery } from 'convex/react'
 import { api } from '../../convex/_generated/api'
 import { useState } from 'react'
 import { RefreshCw } from 'lucide-react'
+import { Input } from '../components/ui/Input'
 
 export default function LogsPage() {
     const logs = useQuery(api.aiLogs.list, {}) ?? []
@@ -16,12 +17,11 @@ export default function LogsPage() {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '12px' }}>
                 <h1>📋 AI Logs</h1>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <input
+                    <Input
                         type="text"
                         placeholder="Filter by model..."
                         value={filter}
                         onChange={(e) => setFilter(e.target.value)}
-                        className="input"
                         style={{ width: 200 }}
                         id="log-filter"
                     />

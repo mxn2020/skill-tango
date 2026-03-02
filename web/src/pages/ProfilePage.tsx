@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom'
 import { Zap, Flame, Crown, User, Settings, CreditCard } from 'lucide-react'
 import { SkeletonProfile } from '../components/Skeleton'
 import { MissingConfigDialog } from '../components/MissingConfigDialog'
+import { Input } from '../components/ui/Input'
 
 export default function ProfilePage() {
     const { isAuthenticated } = useConvexAuth()
@@ -77,11 +78,10 @@ export default function ProfilePage() {
                         <span className="profile-field__label">Name</span>
                         {editingName ? (
                             <div className="profile-field__edit">
-                                <input
+                                <Input
                                     type="text"
                                     value={nameDraft}
                                     onChange={(e) => setNameDraft(e.target.value)}
-                                    className="profile-field__input"
                                     autoFocus
                                 />
                                 <button className="btn btn--primary btn--sm" onClick={handleSaveName}>Save</button>

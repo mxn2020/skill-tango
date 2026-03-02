@@ -4,6 +4,7 @@ import {
     LineChart, Line, ScatterChart, Scatter, Cell,
 } from 'recharts'
 import { Play, Square, Download, Loader2 } from 'lucide-react'
+import { Input } from './ui/Input'
 
 // --- Types ---
 interface CallLog {
@@ -193,17 +194,12 @@ export function LoadTestDashboard() {
                             <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-smoke-gray)', marginBottom: 4 }}>
                                 Concurrency Levels (comma-separated)
                             </label>
-                            <input
+                            <Input
                                 type="text"
                                 value={concurrencyInput}
                                 onChange={e => setConcurrencyInput(e.target.value)}
                                 placeholder="1,5,10,20,50,100"
                                 disabled={isRunning}
-                                style={{
-                                    width: '100%', padding: '10px 14px', borderRadius: '8px',
-                                    border: '1px solid rgba(6,182,212,0.3)', background: 'rgba(10,10,10,0.5)',
-                                    color: 'white', fontSize: '0.95rem', fontFamily: 'inherit', outline: 'none',
-                                }}
                             />
                         </div>
                         <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: '0.9rem', cursor: 'pointer' }}>

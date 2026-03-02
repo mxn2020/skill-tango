@@ -9,6 +9,7 @@ import { LessonPlayer } from '../components/LessonPlayer'
 import { CustomSelect } from '../components/CustomSelect'
 import { useToast } from '../components/Toast'
 import { SkeletonCourseList, SkeletonAssessment } from '../components/Skeleton'
+import { Input } from '../components/ui/Input'
 
 type Modality = 'text' | 'audio' | 'visual'
 
@@ -251,18 +252,13 @@ export default function AppHome() {
                     <div className="card" style={{ maxWidth: '600px', margin: '0 auto' }}>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-lg)' }}>
                             <div>
-                                <label style={{ display: 'block', marginBottom: 'var(--space-sm)', fontWeight: 600 }}>Topic</label>
-                                <input
+                                <Input
+                                    label="Topic"
                                     type="text"
                                     placeholder="e.g. Quantum Physics, French, Guitar Chords..."
                                     value={topic}
                                     onChange={(e) => setTopic(e.target.value)}
                                     onKeyDown={e => e.key === 'Enter' && handleStartAssessment()}
-                                    style={{
-                                        width: '100%', padding: 'var(--space-md)', borderRadius: 'var(--radius-sm)',
-                                        border: '1px solid rgba(6, 182, 212, 0.3)', background: 'rgba(10, 10, 10, 0.5)',
-                                        color: 'white', fontSize: '1rem', fontFamily: 'inherit', outline: 'none'
-                                    }}
                                 />
                             </div>
 

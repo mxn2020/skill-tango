@@ -1,17 +1,51 @@
 import { useQuery, useAction, useConvexAuth } from 'convex/react'
 import { useNavigate } from 'react-router-dom'
 import { api } from '../../convex/_generated/api'
-import { CreditCard, Check, ArrowLeft } from 'lucide-react'
+import { CreditCard, Check, ArrowLeft, Loader2 } from 'lucide-react'
 import { Link } from 'react-router-dom'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { MissingConfigDialog } from '../components/MissingConfigDialog'
+
+type Plan = {
+    id: string
+    name: string
+    description?: string
+    planKey: string
+    appSlug: string
+    features: string[]
+    price?: {
+        id: string
+        amount: number
+        currency: string
+        interval?: string
+    }
+}
 
 export default function BillingPage() {
     const { isAuthenticated } = useConvexAuth()
     const subscription = useQuery(api.stripe.getSubscription)
     const createCheckout = useAction(api.stripe.createCheckoutSession)
+    const getActivePlans = useAction(api.stripe.getActivePlans)
     const navigate = useNavigate()
     const [configError, setConfigError] = useState<string | null>(null)
+    const [plans, setPlans] = useState<Plan[]>([])
+    const [loading, setLoading] = useState(true)
+
+    useEffect(() => {
+        if (!isAuthenticated) return
+
+        getActivePlans()
+            .then(data => {
+                const appPlans = data.filter((p: Plan) => p.appSlug === 'skill-tango' || p.appSlug === 'unknown')
+                setPlans(appPlans)
+            })
+            .catch(err => {
+                const msg = err instanceof Error ? err.message : String(err)
+                if (msg.includes('not configured')) setConfigError(msg)
+                console.error(err)
+            })
+            .finally(() => setLoading(false))
+    }, [isAuthenticated, getActivePlans])
 
     if (!isAuthenticated) {
         navigate('/login')
@@ -20,10 +54,10 @@ export default function BillingPage() {
 
     const currentPlan = subscription?.plan ?? 'free'
 
-    const handleUpgrade = async (plan: 'pro' | 'enterprise') => {
+    const handleUpgrade = async (planKey: string, priceId: string) => {
         try {
-            const { url } = await createCheckout({ plan })
-            if (url) window.location.href = url
+            const { url } = await createCheckout({ planKey, priceId })
+            if (url) window.location.assign(url)
         } catch (err) {
             const msg = err instanceof Error ? err.message : String(err)
             if (msg.includes('not configured')) {
@@ -33,47 +67,6 @@ export default function BillingPage() {
             }
         }
     }
-
-    const plans = [
-        {
-            id: 'free' as const,
-            name: 'Free',
-            price: '$0',
-            features: [
-                '1 course at a time',
-                'Text-only content',
-                'Basic quizzes',
-            ],
-            missing: ['Audio lessons', 'Visual content'],
-        },
-        {
-            id: 'pro' as const,
-            name: 'Pro',
-            price: '$9/mo',
-            popular: true,
-            features: [
-                'Unlimited courses',
-                'All modalities',
-                'Audio lessons (TTS)',
-                'Progress tracking',
-                'Priority support',
-            ],
-            missing: [],
-        },
-        {
-            id: 'enterprise' as const,
-            name: 'Enterprise',
-            price: '$29/mo',
-            features: [
-                'Everything in Pro',
-                'API access',
-                'Team learning',
-                'Custom topics',
-                'SLA support',
-            ],
-            missing: [],
-        },
-    ]
 
     return (
         <div className="billing-page">
@@ -103,42 +96,60 @@ export default function BillingPage() {
                 </div>
             </div>
 
-            {/* Plan Cards */}
-            <div className="pricing-grid" style={{ marginTop: '32px' }}>
-                {plans.map((plan) => (
-                    <div key={plan.id} className={`pricing-card ${plan.popular ? 'pricing-card--popular' : ''}`}>
-                        {plan.popular && <div className="pricing-card__badge">Most Popular</div>}
+            {loading ? (
+                <div style={{ display: 'flex', justifyContent: 'center', padding: '64px' }}>
+                    <Loader2 size={48} className="animate-spin" style={{ color: 'var(--color-primary)' }} />
+                </div>
+            ) : (
+                <div className="pricing-grid" style={{ marginTop: '32px' }}>
+                    <div className="pricing-card">
                         <div className="pricing-card__header">
-                            <h2>{plan.name}</h2>
-                            <div className="pricing-card__price">{plan.price}</div>
+                            <h2>Free</h2>
+                            <div className="pricing-card__price">$0<span>/mo</span></div>
                         </div>
                         <ul className="pricing-card__features">
-                            {plan.features.map((f) => (
-                                <li key={f}><Check size={16} style={{ color: 'var(--color-neon-emerald)' }} /> {f}</li>
-                            ))}
-                            {plan.missing.map((f) => (
-                                <li key={f} style={{ opacity: 0.5 }}>✕ {f}</li>
-                            ))}
+                            <li><Check size={16} style={{ color: 'var(--color-neon-emerald)' }} /> Basic features</li>
+                            <li><Check size={16} style={{ color: 'var(--color-neon-emerald)' }} /> Limited monthly usage</li>
+                            <li><Check size={16} style={{ color: 'var(--color-neon-emerald)' }} /> Community support</li>
                         </ul>
-                        {currentPlan === plan.id ? (
-                            <button className="btn btn--secondary pricing-card__btn" disabled>
-                                ✅ Current Plan
-                            </button>
-                        ) : plan.id === 'free' ? (
-                            <button className="btn btn--secondary pricing-card__btn" disabled>
-                                Free Tier
-                            </button>
-                        ) : (
-                            <button
-                                className="btn btn--primary pricing-card__btn"
-                                onClick={() => handleUpgrade(plan.id as 'pro' | 'enterprise')}
-                            >
-                                Upgrade to {plan.name}
-                            </button>
-                        )}
+                        <button className="btn btn--secondary pricing-card__btn" disabled={currentPlan === 'free'}>
+                            {currentPlan === 'free' ? '✅ Current Plan' : 'Downgrade'}
+                        </button>
                     </div>
-                ))}
-            </div>
+
+                    {plans.map((plan) => (
+                        <div key={plan.id} className="pricing-card">
+                            <div className="pricing-card__header">
+                                <h2>{plan.name}</h2>
+                                <div className="pricing-card__price">
+                                    ${plan.price ? (plan.price.amount / 100).toFixed(0) : '0'}
+                                    {plan.price?.interval && <span>/{plan.price.interval === 'month' ? 'mo' : 'yr'}</span>}
+                                </div>
+                            </div>
+
+                            {plan.description && (
+                                <p style={{ color: 'var(--color-smoke-gray)', fontSize: '0.9rem', marginBottom: '16px' }}>
+                                    {plan.description}
+                                </p>
+                            )}
+
+                            <ul className="pricing-card__features">
+                                {plan.features.map((f, i) => (
+                                    <li key={i}><Check size={16} style={{ color: 'var(--color-neon-emerald)' }} /> {f}</li>
+                                ))}
+                            </ul>
+
+                            <button
+                                className={`btn ${currentPlan === plan.planKey ? 'btn--secondary' : 'btn--primary'} pricing-card__btn`}
+                                disabled={currentPlan === plan.planKey}
+                                onClick={() => handleUpgrade(plan.planKey, plan.price!.id)}
+                            >
+                                {currentPlan === plan.planKey ? '✅ Current Plan' : `Upgrade to ${plan.name}`}
+                            </button>
+                        </div>
+                    ))}
+                </div>
+            )}
         </div>
     )
 }

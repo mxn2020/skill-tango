@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Loader2, ChevronRight } from 'lucide-react'
+import { Textarea } from './ui/Textarea'
 
 type Props = {
     topic: string
@@ -149,16 +150,14 @@ export function AssessmentChat({ topic, assessmentMessage, questions, onComplete
             {/* Answer Input */}
             {!isGrading && currentQ < totalQ && (
                 <div style={{ display: 'flex', gap: 'var(--space-md)' }}>
-                    <textarea
+                    <Textarea
                         placeholder="Type your answer... (Enter to submit)"
                         value={currentAnswer}
-                        onChange={e => setCurrentAnswer(e.target.value)}
+                        onChange={(e: any) => setCurrentAnswer(e.target.value)}
                         onKeyDown={handleKeyDown}
                         rows={2}
                         style={{
-                            flex: 1, padding: 'var(--space-md)', borderRadius: 'var(--radius-sm)',
-                            border: '1px solid rgba(6, 182, 212, 0.3)', background: 'rgba(10, 10, 10, 0.5)',
-                            color: 'white', fontSize: '1rem', resize: 'none', fontFamily: 'inherit'
+                            flex: 1
                         }}
                     />
                     <button

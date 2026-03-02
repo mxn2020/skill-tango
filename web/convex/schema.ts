@@ -14,7 +14,7 @@ export default defineSchema({
         streak: v.number(),
         lastActiveAt: v.number(),
         stripeCustomerId: v.optional(v.string()),
-        plan: v.optional(v.union(v.literal("free"), v.literal("pro"), v.literal("enterprise"))),
+        plan: v.optional(v.string()),
         // Usage tracking
         monthlyCoursesCreated: v.optional(v.number()),
         monthlyAssessments: v.optional(v.number()),

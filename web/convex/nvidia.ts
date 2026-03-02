@@ -5,7 +5,6 @@ type NvidiaMessage = {
     content: string | Array<{ type: "text", text: string } | { type: "image_url", image_url: { url: string } }>;
 };
 
-// Extract text-only content from messages (strip base64 images for log readability)
 export function extractPromptText(messages: NvidiaMessage[]): {
     systemPrompt: string
     userPromptText: string
@@ -40,7 +39,7 @@ export function extractPromptText(messages: NvidiaMessage[]): {
 
 /**
  * Universal wrapper for calling NVIDIA NIMs.
- * Handles fetch logic, error checking, token tracking, and automatic saving to the aiLogs table.
+ * Handles fetch, retries, error checking, and automatic AI log saving.
  */
 export async function performNvidiaCall(ctx: any, args: {
     model: string,
@@ -58,7 +57,6 @@ export async function performNvidiaCall(ctx: any, args: {
 
     const { model, messages, temperature = 0.7, maxTokens = 2048, topP = 0.9, caller = 'unknown', responseFormat } = args;
 
-    // Construct body
     const bodyObj: any = { model, messages, temperature, max_tokens: maxTokens, top_p: topP, stream: false };
     if (responseFormat) {
         bodyObj.response_format = responseFormat;
@@ -80,7 +78,7 @@ export async function performNvidiaCall(ctx: any, args: {
     let errorMessage: string | undefined;
     let status: 'success' | 'error' = 'success';
 
-    console.log(`[NVIDIA API Action] [${requestId}] Calling model: ${model} (caller: ${caller})`);
+    console.log(`[NVIDIA API] [${requestId}] Calling model: ${model} (caller: ${caller})`);
 
     const RETRYABLE_STATUS_CODES = new Set([429, 500, 502, 503, 504]);
     const MAX_RETRIES = 3;
@@ -103,10 +101,9 @@ export async function performNvidiaCall(ctx: any, args: {
                 if (!response.ok) {
                     const errorText = await response.text();
 
-                    // Retry on transient errors
                     if (RETRYABLE_STATUS_CODES.has(response.status) && attempt < MAX_RETRIES) {
-                        const delay = Math.pow(2, attempt - 1) * 1000; // 1s, 2s, 4s
-                        console.log(`[NVIDIA API Action] [${requestId}] Attempt ${attempt}/${MAX_RETRIES} failed (HTTP ${response.status}). Retrying in ${delay}ms...`);
+                        const delay = Math.pow(2, attempt - 1) * 1000;
+                        console.log(`[NVIDIA API] [${requestId}] Attempt ${attempt}/${MAX_RETRIES} failed (HTTP ${response.status}). Retrying in ${delay}ms...`);
                         lastError = new Error(`NVIDIA API error (${response.status}): ${errorText}`);
                         await new Promise(resolve => setTimeout(resolve, delay));
                         continue;
@@ -131,17 +128,16 @@ export async function performNvidiaCall(ctx: any, args: {
                 }
 
                 if (attempt > 1) {
-                    console.log(`[NVIDIA API Action] [${requestId}] Succeeded on attempt ${attempt}/${MAX_RETRIES}`);
+                    console.log(`[NVIDIA API] [${requestId}] Succeeded on attempt ${attempt}/${MAX_RETRIES}`);
                 }
 
                 return responseContent;
             } catch (fetchErr) {
                 lastError = fetchErr instanceof Error ? fetchErr : new Error('Unknown error');
 
-                // If it's a network error (no httpStatus set) and we have retries left, retry
                 if (httpStatus === 0 && attempt < MAX_RETRIES) {
                     const delay = Math.pow(2, attempt - 1) * 1000;
-                    console.log(`[NVIDIA API Action] [${requestId}] Attempt ${attempt}/${MAX_RETRIES} failed (network error). Retrying in ${delay}ms...`);
+                    console.log(`[NVIDIA API] [${requestId}] Attempt ${attempt}/${MAX_RETRIES} failed (network error). Retrying in ${delay}ms...`);
                     await new Promise(resolve => setTimeout(resolve, delay));
                     continue;
                 }
@@ -150,7 +146,6 @@ export async function performNvidiaCall(ctx: any, args: {
             }
         }
 
-        // Should not reach here, but just in case
         throw lastError || new Error('All retry attempts exhausted');
     } catch (err) {
         if (status !== 'error') {
@@ -186,13 +181,13 @@ export async function performNvidiaCall(ctx: any, args: {
                 errorMessage,
             });
         } catch (logErr) {
-            console.error("[NVIDIA API Action] Failed to save log entry:", logErr);
+            console.error("[NVIDIA API] Failed to save log entry:", logErr);
         }
     }
 }
 
 /**
- * Generates an image using NVIDIA API (e.g., sdxl-turbo or similar)
+ * Generates an image using NVIDIA API.
  * Returns a base64 encoded string of the image.
  */
 export async function generateImage(prompt: string): Promise<string> {
@@ -210,7 +205,7 @@ export async function generateImage(prompt: string): Promise<string> {
         },
         body: JSON.stringify({
             model: "stabilityai/stable-diffusion-xl-base-1.0",
-            prompt: prompt.substring(0, 1000), // Ensure it's not too long
+            prompt: prompt.substring(0, 1000),
             n: 1,
             response_format: "b64_json",
             size: "1024x1024"
@@ -230,3 +225,97 @@ export async function generateImage(prompt: string): Promise<string> {
 
     return b64;
 }
+
+/**
+ * Generates audio (TTS) given a prompt.
+ * Returns a base64 encoded MP3 string or equivalent.
+ */
+export async function generateAudio(prompt: string, voiceId = "alloy"): Promise<string> {
+    // In a real scenario, this would call NVIDIA NIM or ElevenLabs/OpenAI TTS endpoints.
+    // For the boilerplate, we provide a structured mock response or proxy.
+    const apiKey = process.env.NVIDIA_API_KEY;
+    if (!apiKey) {
+        throw new Error("NVIDIA_API_KEY is not configured in Convex environment variables.");
+    }
+
+    // Mock implementation for demonstration since exact APIs vary.
+    // We simulate a network delay and return a dummy base64 string.
+    await new Promise(r => setTimeout(r, 1500));
+    const dummyAudioBase64 = "UklGRuQBAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YcABAAAA" // Tiny valid WAV header
+    return dummyAudioBase64;
+}
+
+/**
+ * Transcribes audio to text (ASR) via NVIDIA NIM or compatible endpoint.
+ */
+export async function transcribeAudio(base64Audio: string): Promise<string> {
+    const apiKey = process.env.NVIDIA_API_KEY;
+    if (!apiKey) {
+        throw new Error("NVIDIA_API_KEY is not configured in Convex environment variables.");
+    }
+
+    // Convert base64 wrapper to what backend expects (for demo we use a dummy wrapper)
+    await new Promise(r => setTimeout(r, 1000));
+    return "This is a dummy transcription. Integrate with an actual ASR endpoint like NVIDIA Nemo or Whisper here.";
+}
+
+/**
+ * Generates a short video (Text-to-Video)
+ */
+export async function generateVideo(prompt: string): Promise<string> {
+    // Boilerplate stub for Text2Video models (e.g. SVD, Runway, Sora)
+    await new Promise(r => setTimeout(r, 2000));
+    return "https://www.w3schools.com/html/mov_bbb.mp4"; // Return a dummy video URL
+}
+
+import { action } from "./_generated/server";
+import { v } from "convex/values";
+
+export const callModel = action({
+    args: {
+        model: v.string(),
+        messages: v.any(), // array of objects
+        temperature: v.optional(v.number()),
+        maxTokens: v.optional(v.number()),
+        topP: v.optional(v.number()),
+        caller: v.optional(v.string())
+    },
+    handler: async (ctx, args) => {
+        return await performNvidiaCall(ctx, {
+            model: args.model,
+            messages: args.messages,
+            temperature: args.temperature,
+            maxTokens: args.maxTokens,
+            topP: args.topP,
+            caller: args.caller || "frontend",
+        });
+    }
+});
+
+export const generateImageAction = action({
+    args: { prompt: v.string() },
+    handler: async (ctx, args) => {
+        return await generateImage(args.prompt);
+    }
+});
+
+export const generateAudioAction = action({
+    args: { prompt: v.string(), voiceId: v.optional(v.string()) },
+    handler: async (ctx, args) => {
+        return await generateAudio(args.prompt, args.voiceId);
+    }
+});
+
+export const transcribeAudioAction = action({
+    args: { base64Audio: v.string() },
+    handler: async (ctx, args) => {
+        return await transcribeAudio(args.base64Audio);
+    }
+});
+
+export const generateVideoAction = action({
+    args: { prompt: v.string() },
+    handler: async (ctx, args) => {
+        return await generateVideo(args.prompt);
+    }
+});

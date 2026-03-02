@@ -58,6 +58,7 @@ export default function Layout({ children }: LayoutProps) {
                     {isAuthenticated && me?.role === 'admin' && (
                         <>
                             <Link to="/admin" className="app__nav-link" onClick={() => setMobileMenuOpen(false)}>⚙️ Admin</Link>
+                            <Link to="/admin/stripe" className="app__nav-link" onClick={() => setMobileMenuOpen(false)}>💳 Billing</Link>
                             <Link to="/audit-logs" className="app__nav-link" onClick={() => setMobileMenuOpen(false)}>📋 Logs</Link>
                             <Link to="/model-tests" className="app__nav-link" onClick={() => setMobileMenuOpen(false)}>🧪 Models</Link>
                         </>

@@ -21,6 +21,7 @@ import type * as nvidia from "../nvidia.js";
 import type * as prompts from "../prompts.js";
 import type * as rateLimit from "../rateLimit.js";
 import type * as stripe from "../stripe.js";
+import type * as stripeAdmin from "../stripeAdmin.js";
 import type * as usageLimits from "../usageLimits.js";
 import type * as users from "../users.js";
 
@@ -44,6 +45,7 @@ declare const fullApi: ApiFromModules<{
   prompts: typeof prompts;
   rateLimit: typeof rateLimit;
   stripe: typeof stripe;
+  stripeAdmin: typeof stripeAdmin;
   usageLimits: typeof usageLimits;
   users: typeof users;
 }>;

@@ -4,6 +4,7 @@ import { api } from '../../convex/_generated/api'
 import { CustomSelect } from '../components/CustomSelect'
 import { LoadTestDashboard } from '../components/LoadTestDashboard'
 import { SkeletonCard } from '../components/Skeleton'
+import { Textarea } from '../components/ui/Textarea'
 
 export default function AdminPage() {
     const prompts = useQuery(api.prompts.getPrompts)
@@ -79,10 +80,9 @@ export default function AdminPage() {
 
                                         {editingPrompt === prompt.promptId ? (
                                             <div className="admin-prompt-editor">
-                                                <textarea
+                                                <Textarea
                                                     value={promptDraft}
-                                                    onChange={(e) => setPromptDraft(e.target.value)}
-                                                    className="admin-prompt-textarea"
+                                                    onChange={(e: any) => setPromptDraft(e.target.value)}
                                                     rows={12}
                                                 />
                                                 <div className="admin-prompt-actions">
