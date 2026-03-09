@@ -2,7 +2,7 @@ import { useQuery } from 'convex/react'
 import { api } from '../../convex/_generated/api'
 import { useState } from 'react'
 import { RefreshCw } from 'lucide-react'
-import { Input } from '../components/ui/Input'
+import { Input } from '@geenius-ui/react-css'
 
 export default function LogsPage() {
     const logs = useQuery(api.aiLogs.list, {}) ?? []

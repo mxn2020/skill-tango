@@ -4,7 +4,7 @@ import { api } from '../../convex/_generated/api'
 import { CustomSelect } from '../components/CustomSelect'
 import { LoadTestDashboard } from '../components/LoadTestDashboard'
 import { SkeletonCard } from '../components/Skeleton'
-import { Textarea } from '../components/ui/Textarea'
+import { Textarea } from '@geenius-ui/react-css'
 
 export default function AdminPage() {
     const prompts = useQuery(api.prompts.getPrompts)

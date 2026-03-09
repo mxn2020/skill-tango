@@ -14,6 +14,7 @@ import type * as auditLog from "../auditLog.js";
 import type * as auth from "../auth.js";
 import type * as content from "../content.js";
 import type * as courses from "../courses.js";
+import type * as devLogs from "../devLogs.js";
 import type * as http from "../http.js";
 import type * as modelCosts from "../modelCosts.js";
 import type * as modelTests from "../modelTests.js";
@@ -38,6 +39,7 @@ declare const fullApi: ApiFromModules<{
   auth: typeof auth;
   content: typeof content;
   courses: typeof courses;
+  devLogs: typeof devLogs;
   http: typeof http;
   modelCosts: typeof modelCosts;
   modelTests: typeof modelTests;

@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom'
 import { useState, useEffect } from 'react'
 import { MissingConfigDialog } from '../components/MissingConfigDialog'
 import { Loader2 } from 'lucide-react'
+import { toast } from 'sonner'
 
 type Plan = {
     id: string
@@ -58,7 +59,7 @@ export default function PricingPage() {
             if (msg.includes('not configured')) {
                 setConfigError(msg)
             } else {
-                alert(msg)
+                toast.error(msg)
             }
         }
     }

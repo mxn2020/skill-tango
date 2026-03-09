@@ -1,5 +1,5 @@
 id: 637d8d40-0ad6-4afa-825d-00bfd4028281
-name: web
+name: skill-tango
 description: React + TypeScript + Vite
 tier: prototype
 lane: side-projects
@@ -11,3 +11,6 @@ deploy_url: null
 last_active: 2026-02-25
 tags: []
 notes: 
+focus: true
+category: infra
+open_tasks: 0

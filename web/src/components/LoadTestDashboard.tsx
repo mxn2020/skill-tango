@@ -5,6 +5,7 @@ import {
 } from 'recharts'
 import { Play, Square, Download, Loader2 } from 'lucide-react'
 import { Input } from './ui/Input'
+import { toast } from 'sonner'
 
 // --- Types ---
 interface CallLog {
@@ -87,7 +88,7 @@ export function LoadTestDashboard() {
         if (concurrencies.length === 0) return
 
         if (!isDryRun && !convexUrl) {
-            alert('VITE_CONVEX_URL not found. Use dry-run mode or set the env variable.')
+            toast.error('VITE_CONVEX_URL not found. Use dry-run mode or set the env variable.')
             return
         }
 

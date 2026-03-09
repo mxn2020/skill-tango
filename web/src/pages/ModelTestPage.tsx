@@ -3,8 +3,7 @@ import { useAction } from 'convex/react'
 import { api } from '../../convex/_generated/api'
 import { FlaskConical, Image as ImageIcon, MessageSquare, Mic, Video, Upload, Loader2, Play } from 'lucide-react'
 import { TEXT_MODELS, IMAGE_MODELS, AUDIO_MODELS, VIDEO_MODELS } from '../lib/modelRegistry'
-import { Select } from '../components/ui/Select'
-import { Textarea } from '../components/ui/Textarea'
+import { Select, Textarea } from '@geenius-ui/react-css'
 
 const TABS = [
     { id: 'text', icon: <MessageSquare size={18} />, label: 'Text' },

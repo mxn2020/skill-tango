@@ -9,7 +9,7 @@ import { LessonPlayer } from '../components/LessonPlayer'
 import { CustomSelect } from '../components/CustomSelect'
 import { useToast } from '../components/Toast'
 import { SkeletonCourseList, SkeletonAssessment } from '../components/Skeleton'
-import { Input } from '../components/ui/Input'
+import { Input } from '@geenius-ui/react-css'
 
 type Modality = 'text' | 'audio' | 'visual'
 

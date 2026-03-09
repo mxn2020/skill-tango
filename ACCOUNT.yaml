@@ -1,0 +1,12 @@
+services:
+  convex:
+    project: SkillTango
+  vercel:
+    project: SkillTango
+  stripe:
+    mode: live
+  nvidia:
+    api: nvidia-nims
+  github:
+    owner: mxn2020
+    repo: skill-tango

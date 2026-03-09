@@ -6,7 +6,7 @@ import { api } from '../../convex/_generated/api'
 import { Loader2 } from 'lucide-react'
 
 import { MissingConfigDialog } from '../components/MissingConfigDialog'
-import { Input } from '../components/ui/Input'
+import { Input } from '@geenius-ui/react-css'
 
 export default function LoginPage() {
     const { signIn } = useAuthActions()
