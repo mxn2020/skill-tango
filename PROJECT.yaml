@@ -1,15 +1,17 @@
 name: SkillTango
+project_scope: main
+project_type: monorepo
 description: AI-powered skill learning and practice platform
 tier: t3
 lane: fun
 priority: high
-category: app
-focus: active
-open_tasks: 0
 oss: true
 stack: [vite, react, typescript, convex]
-repo: https://github.com/mxn2020/skill-tango
+repo: "https://github.com/mxn2020/skill-tango"
 deploy_url: null
 last_active: 2026-03-09
-tags: [skills,ai,learning,convex]
+tags: [skills, ai, learning, convex]
 notes: null
+category: webapp
+focus: active
+open_tasks: 0

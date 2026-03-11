@@ -5,7 +5,7 @@ import {
 } from 'recharts'
 import { Play, Square, Download, Loader2 } from 'lucide-react'
 import { Input } from './ui/Input'
-import { toast } from 'sonner'
+import toast from 'react-hot-toast'
 
 // --- Types ---
 interface CallLog {

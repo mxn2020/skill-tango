@@ -1,3 +1,4 @@
+import { Toaster } from 'react-hot-toast'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import Layout from './components/Layout'
 import { ErrorBoundary } from './components/ErrorBoundary'
@@ -48,7 +49,8 @@ function App() {
           <CookieBanner />
         </Layout>
       </BrowserRouter>
-    </ErrorBoundary>
+        <Toaster position="bottom-right" />
+        </ErrorBoundary>
   )
 }
 
