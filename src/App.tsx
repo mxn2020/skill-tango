@@ -26,6 +26,7 @@ import { SettingsPage } from './pages/SettingsPage';
 import { LessonPage } from './pages/LessonPage';
 import { OnboardingPage } from './pages/OnboardingPage';
 import { MemoryBankPage } from './pages/MemoryBankPage';
+import { AdminPromptsPage } from './pages/AdminPromptsPage';
 
 // ─── App Layout Shell ─────────────────────────────
 function AppLayout() {
@@ -108,7 +109,7 @@ function AppRoot() {
         <Route path="/stats" element={<StatsPage />} />
         <Route path="/memory" element={<MemoryBankPage />} />
         <Route path="/settings" element={<SettingsPage />} />
-        <Route path="/admin/prompts" element={<DashboardPage />} />
+        <Route path="/admin/prompts" element={<AdminPromptsPage />} />
         <Route path="/" element={<Navigate to="/dashboard" replace />} />
         <Route path="*" element={<Navigate to="/dashboard" replace />} />
       </Route>
