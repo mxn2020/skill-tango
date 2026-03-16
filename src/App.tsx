@@ -24,13 +24,14 @@ import { CourseSyllabusPage } from './pages/CourseSyllabusPage';
 import { StatsPage } from './pages/StatsPage';
 import { SettingsPage } from './pages/SettingsPage';
 import { LessonPage } from './pages/LessonPage';
+import { OnboardingPage } from './pages/OnboardingPage';
 
 // ─── App Layout Shell ─────────────────────────────
 function AppLayout() {
   const location = useLocation();
 
   // Don't show shell on lesson pages (immersion mode)
-  const isImmersive = location.pathname.startsWith('/lesson');
+  const isImmersive = location.pathname.startsWith('/lesson') || location.pathname.startsWith('/onboarding');
 
   if (isImmersive) {
     return <Outlet />;
@@ -102,6 +103,7 @@ function AppRoot() {
         <Route path="/generate" element={<GenerateCoursePage />} />
         <Route path="/course/:courseId" element={<CourseSyllabusPage />} />
         <Route path="/lesson/:lessonId" element={<LessonPage />} />
+        <Route path="/onboarding" element={<OnboardingPage />} />
         <Route path="/stats" element={<StatsPage />} />
         <Route path="/settings" element={<SettingsPage />} />
         <Route path="/admin/prompts" element={<DashboardPage />} />
