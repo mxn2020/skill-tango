@@ -1,0 +1,35 @@
+/* Settings Page */
+.settings { max-width: 680px; width: 100%; display: flex; flex-direction: column; gap: var(--space-6); }
+.settings h1 { font-size: var(--text-3xl); font-weight: 800; }
+
+.settings__section { background: var(--bg-elevated-1); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); padding: var(--space-6); display: flex; flex-direction: column; gap: var(--space-5); }
+.settings__section h3 { display: flex; align-items: center; gap: var(--space-2); font-size: var(--text-lg); font-weight: 600; padding-bottom: var(--space-3); border-bottom: 1px solid var(--border-subtle); }
+.settings__section--danger { border-color: hsla(350, 72%, 55%, 0.2); }
+.settings__section--danger h3 { color: var(--color-error); }
+
+.settings__profile { display: flex; align-items: center; gap: var(--space-5); }
+.settings__profile-info { display: flex; flex-direction: column; gap: var(--space-1); }
+.settings__profile-info h4 { font-size: var(--text-lg); font-weight: 600; }
+.settings__profile-info p { font-size: var(--text-sm); color: var(--text-muted); }
+
+.settings__field { display: flex; flex-direction: column; gap: var(--space-2); }
+.settings__field label { font-size: var(--text-sm); font-weight: 500; color: var(--text-secondary); }
+.settings__field--row { flex-direction: row; align-items: center; justify-content: space-between; }
+
+.settings__slider-wrap { display: flex; align-items: center; gap: var(--space-4); }
+.settings__slider { flex: 1; accent-color: var(--color-primary); height: 4px; }
+.settings__slider-value { font-size: var(--text-sm); font-weight: 600; color: var(--text-primary); min-width: 60px; text-align: right; }
+
+.settings__radio-group { display: flex; gap: var(--space-2); }
+.settings__radio-card { padding: var(--space-3) var(--space-5); border-radius: var(--radius-full); font-size: var(--text-sm); font-weight: 500; border: 1px solid var(--border-default); color: var(--text-secondary); cursor: pointer; transition: all var(--transition-fast); }
+.settings__radio-card:hover { border-color: var(--color-primary-muted); }
+.settings__radio-card--active { background: var(--color-primary-subtle); border-color: var(--color-primary); color: var(--color-primary); }
+
+.settings__toggle { width: 44px; height: 24px; border-radius: var(--radius-full); background: var(--bg-elevated-3); cursor: pointer; position: relative; transition: background var(--transition-fast); flex-shrink: 0; }
+.settings__toggle--on { background: var(--color-primary); }
+.settings__toggle-knob { width: 18px; height: 18px; border-radius: 50%; background: white; position: absolute; top: 3px; left: 3px; transition: transform var(--transition-fast); }
+.settings__toggle--on .settings__toggle-knob { transform: translateX(20px); }
+
+.settings__theme-toggle { display: flex; border-radius: var(--radius-full); border: 1px solid var(--border-default); overflow: hidden; }
+.settings__theme-btn { padding: var(--space-2) var(--space-4); font-size: var(--text-sm); font-weight: 500; color: var(--text-muted); cursor: pointer; transition: all var(--transition-fast); }
+.settings__theme-btn--active { background: var(--bg-elevated-3); color: var(--text-primary); }

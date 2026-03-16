@@ -1,0 +1,368 @@
+/* Dashboard Page */
+
+.dashboard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  max-width: 900px;
+  width: 100%;
+}
+
+.dashboard__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.dashboard__title {
+  font-size: var(--text-3xl);
+  font-weight: 800;
+  margin-bottom: var(--space-1);
+}
+
+.dashboard__subtitle {
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+}
+
+/* LifePulse Pill */
+.lifepulse-pill {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-full);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  border: 1px solid var(--border-default);
+  background: var(--bg-elevated-2);
+  color: var(--text-secondary);
+}
+
+.lifepulse-pill__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  transition: background var(--transition-fast);
+}
+
+.lifepulse-pill--optimal .lifepulse-pill__dot {
+  background: var(--color-success);
+  box-shadow: 0 0 6px var(--color-success);
+}
+
+.lifepulse-pill--overloaded .lifepulse-pill__dot {
+  background: var(--color-warning);
+  box-shadow: 0 0 6px var(--color-warning);
+  animation: pulseGlow 2s infinite;
+}
+
+/* AI Briefing */
+.dashboard__briefing {
+  background: var(--bg-elevated-1);
+  border: 1px solid transparent;
+  border-image: linear-gradient(135deg, var(--color-primary), var(--color-secondary)) 1;
+  border-radius: var(--radius-xl);
+  padding: var(--space-6);
+  position: relative;
+  overflow: hidden;
+}
+
+.dashboard__briefing::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, hsla(155, 72%, 40%, 0.04), hsla(239, 84%, 67%, 0.04));
+  pointer-events: none;
+}
+
+.dashboard__briefing-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-primary);
+  margin-bottom: var(--space-4);
+}
+
+.dashboard__briefing-greeting {
+  font-family: var(--font-display);
+  font-size: var(--text-xl);
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: var(--space-3);
+}
+
+.dashboard__briefing-insight,
+.dashboard__briefing-suggestion {
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  line-height: 1.6;
+  margin-bottom: var(--space-2);
+}
+
+.dashboard__briefing-encouragement {
+  font-size: var(--text-sm);
+  color: var(--color-primary);
+  font-weight: 500;
+  font-style: italic;
+  margin-top: var(--space-2);
+}
+
+/* Today's Target */
+.dashboard__target {
+  padding: var(--space-8) !important;
+  background: linear-gradient(135deg, var(--bg-elevated-1) 0%, hsla(155, 72%, 40%, 0.04) 100%) !important;
+}
+
+.dashboard__target-content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.dashboard__target-content h2 {
+  font-size: var(--text-2xl);
+  font-weight: 700;
+}
+
+.dashboard__target-content p {
+  font-size: var(--text-base);
+  color: var(--text-secondary);
+}
+
+.dashboard__target-btn {
+  margin-top: var(--space-3);
+  width: fit-content;
+  text-decoration: none;
+  color: white;
+}
+
+@keyframes targetPulse {
+  0%, 100% { box-shadow: 0 0 0 0 hsla(155, 72%, 40%, 0.3); }
+  50% { box-shadow: 0 0 0 8px hsla(155, 72%, 40%, 0); }
+}
+
+.dashboard__target-btn {
+  animation: targetPulse 2s infinite;
+}
+
+.dashboard__target-meta {
+  display: flex;
+  gap: var(--space-6);
+  margin-top: var(--space-4);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--border-subtle);
+}
+
+.dashboard__target-meta span {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+}
+
+/* Skill Rings */
+.dashboard__section-title {
+  font-size: var(--text-lg);
+  font-weight: 600;
+  margin-bottom: var(--space-4);
+}
+
+.dashboard__skills-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-4);
+}
+
+.dashboard__skill-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-5);
+  background: var(--bg-elevated-1);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+}
+
+.dashboard__skill-name {
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.dashboard__skill-pct {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+}
+
+.dashboard__skills-skeleton {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-4);
+}
+
+/* Active Courses */
+.dashboard__section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-4);
+}
+
+.dashboard__section-link {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+}
+
+.dashboard__section-link:hover {
+  color: var(--color-primary);
+}
+
+.dashboard__courses-scroll {
+  display: flex;
+  gap: var(--space-4);
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  padding-bottom: var(--space-2);
+  -webkit-overflow-scrolling: touch;
+}
+
+.dashboard__courses-scroll::-webkit-scrollbar {
+  height: 0;
+}
+
+.dashboard__course-card {
+  flex-shrink: 0;
+  width: 220px;
+  scroll-snap-align: start;
+  background: var(--bg-elevated-1);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  text-decoration: none;
+  color: inherit;
+  transition: all var(--transition-fast);
+}
+
+.dashboard__course-card:hover {
+  border-color: var(--border-default);
+  transform: translateY(-2px);
+}
+
+.dashboard__course-cover {
+  height: 80px;
+}
+
+.dashboard__course-info {
+  padding: var(--space-3) var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.dashboard__course-title {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--text-primary);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.dashboard__course-continue {
+  font-size: var(--text-xs);
+  color: var(--color-primary);
+}
+
+.dashboard__course-card--add {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  border-style: dashed;
+  color: var(--text-muted);
+  min-height: 160px;
+  font-size: var(--text-sm);
+}
+
+.dashboard__course-card--add:hover {
+  color: var(--color-primary);
+  border-color: var(--color-primary-muted);
+}
+
+/* Recent Activity */
+.dashboard__activity-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.dashboard__activity-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  background: var(--bg-elevated-1);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-subtle);
+}
+
+.dashboard__activity-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--color-primary);
+  flex-shrink: 0;
+}
+
+.dashboard__activity-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.dashboard__activity-label {
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.dashboard__activity-detail {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .dashboard__skills-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .dashboard__course-card {
+    width: 180px;
+  }
+
+  .dashboard__header {
+    flex-direction: column;
+    gap: var(--space-3);
+  }
+
+  .dashboard__title {
+    font-size: var(--text-2xl);
+  }
+}
