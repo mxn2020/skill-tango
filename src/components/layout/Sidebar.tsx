@@ -11,6 +11,7 @@ import {
   BookOpen,
   Sparkles,
   Activity,
+  Brain,
   Settings,
   Terminal,
   ChevronLeft,
@@ -25,6 +26,7 @@ const NAV_ITEMS = [
   { path: '/courses', label: 'My Courses', icon: BookOpen },
   { path: '/generate', label: 'Generate Course', icon: Sparkles },
   { path: '/stats', label: 'Activity & Stats', icon: Activity },
+  { path: '/memory', label: 'Memory Bank', icon: Brain },
   { path: '/settings', label: 'Settings', icon: Settings },
 ];
 
