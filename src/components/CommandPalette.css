@@ -1,0 +1,173 @@
+/* ═══════════════════════════════════════════════════
+   Command Palette (Cmd+K)
+   ═══════════════════════════════════════════════════ */
+
+.cmdpal__overlay {
+  position: fixed;
+  inset: 0;
+  background: hsla(0, 0%, 0%, 0.5);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 15vh;
+  z-index: 300;
+}
+
+.cmdpal__card {
+  width: 100%;
+  max-width: 580px;
+  background: hsla(225, 25%, 12%, 0.85);
+  backdrop-filter: blur(24px) saturate(1.8);
+  border: 1px solid hsla(220, 20%, 30%, 0.5);
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  box-shadow: 0 24px 48px hsla(0, 0%, 0%, 0.4);
+}
+
+/* ─── Search ─── */
+.cmdpal__search-wrap {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-5);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.cmdpal__search-wrap svg { color: var(--text-muted); flex-shrink: 0; }
+
+.cmdpal__search {
+  flex: 1;
+  background: none;
+  border: none;
+  color: var(--text-primary);
+  font-size: var(--text-base);
+  outline: none;
+}
+
+.cmdpal__search::placeholder { color: var(--text-muted); }
+
+.cmdpal__esc {
+  font-family: var(--font-body);
+  font-size: 10px;
+  padding: 2px 6px;
+  background: var(--bg-elevated-3);
+  border: 1px solid var(--border-default);
+  border-radius: 4px;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+/* ─── Results ─── */
+.cmdpal__results {
+  max-height: 400px;
+  overflow-y: auto;
+  padding: var(--space-2);
+}
+
+.cmdpal__section {
+  margin-bottom: var(--space-1);
+}
+
+.cmdpal__section-label {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  padding: var(--space-2) var(--space-3);
+}
+
+.cmdpal__item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  width: 100%;
+  text-align: left;
+  padding: var(--space-3) var(--space-3);
+  border-radius: var(--radius-md);
+  background: none;
+  border: none;
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: background 0.1s ease;
+}
+
+.cmdpal__item:hover,
+.cmdpal__item--active {
+  background: hsla(239, 84%, 67%, 0.12);
+}
+
+.cmdpal__item-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-md);
+  background: var(--bg-elevated-3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-secondary);
+  flex-shrink: 0;
+}
+
+.cmdpal__item--active .cmdpal__item-icon {
+  background: var(--color-secondary);
+  color: white;
+}
+
+.cmdpal__item-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.cmdpal__item-title {
+  font-size: var(--text-sm);
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cmdpal__item-sub {
+  font-size: 11px;
+  color: var(--text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cmdpal__item-enter {
+  color: var(--color-secondary);
+  opacity: 0.6;
+  flex-shrink: 0;
+}
+
+/* ─── Empty ─── */
+.cmdpal__empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-8);
+  color: var(--text-muted);
+  text-align: center;
+}
+
+.cmdpal__empty span { font-size: var(--text-sm); }
+
+/* ─── Responsive ─── */
+@media (max-width: 768px) {
+  .cmdpal__overlay {
+    align-items: flex-end;
+    padding-top: 0;
+  }
+
+  .cmdpal__card {
+    max-width: 100%;
+    border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+    max-height: 80dvh;
+  }
+}

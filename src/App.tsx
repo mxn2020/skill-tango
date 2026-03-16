@@ -3,7 +3,7 @@
 // Root layout with routing + auth guarding
 // ═══════════════════════════════════════════════════
 
-import { useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, Outlet, useLocation } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { AuthProvider, useAuth } from './adapters/auth';
@@ -12,6 +12,7 @@ import { Sidebar } from './components/layout/Sidebar';
 import { BottomNav } from './components/layout/BottomNav';
 import { db } from './adapters/db';
 import { logger } from './adapters/logger';
+import { CommandPalette } from './components/CommandPalette';
 import './styles/tokens.css';
 import './styles/global.css';
 
@@ -31,6 +32,19 @@ import { AdminPromptsPage } from './pages/AdminPromptsPage';
 // ─── App Layout Shell ─────────────────────────────
 function AppLayout() {
   const location = useLocation();
+  const [cmdKOpen, setCmdKOpen] = useState(false);
+
+  // Global Cmd+K listener
+  useEffect(() => {
+    const handleKey = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        setCmdKOpen(v => !v);
+      }
+    };
+    window.addEventListener('keydown', handleKey);
+    return () => window.removeEventListener('keydown', handleKey);
+  }, []);
 
   // Don't show shell on lesson pages (immersion mode)
   const isImmersive = location.pathname.startsWith('/lesson') || location.pathname.startsWith('/onboarding');
@@ -57,6 +71,7 @@ function AppLayout() {
         </AnimatePresence>
       </main>
       <BottomNav />
+      <CommandPalette open={cmdKOpen} onClose={() => setCmdKOpen(false)} />
     </div>
   );
 }
