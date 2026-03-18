@@ -3,19 +3,28 @@
 // Split-screen with immersive CSS gradient hero
 // ═══════════════════════════════════════════════════
 
-import { useState, type FormEvent } from 'react';
+import { useState, useEffect, type FormEvent } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Sparkles, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '../adapters/auth';
 import './LoginPage.css';
 
 export function LoginPage() {
-  const { login } = useAuth();
+  const { login, isAuthenticated } = useAuth();
+  const navigate = useNavigate();
   const [email, setEmail] = useState('alex@skill-tango.app');
   const [password, setPassword] = useState('password');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  // Redirect to dashboard if already authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate('/dashboard', { replace: true });
+    }
+  }, [isAuthenticated, navigate]);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -23,6 +32,7 @@ export function LoginPage() {
     setLoading(true);
     try {
       await login(email, password);
+      // Navigation handled by the useEffect above reacting to isAuthenticated
     } catch {
       setError('Invalid credentials. Please try again.');
     } finally {
